@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0](https://github.com/duonrun/sire/releases/tag/0.3.0) (2026-02-21)
+## [0.3.0](https://github.com/duoncode/sire/releases/tag/0.3.0) (2026-02-21)
 
 Codename: Jonas
 
@@ -11,13 +11,13 @@ Codename: Jonas
 - Breaking: Exception messages updated to reference "shape" instead of "schema"
   (`"Shape definition error: field must not be empty"`, `"Wrong shape type"`).
 
-## [0.2.0](https://github.com/duonrun/sire/releases/tag/0.2.0) (2026-02-01)
+## [0.2.0](https://github.com/duoncode/sire/releases/tag/0.2.0) (2026-02-01)
 
 ### Changed
 
 - Breaking: Updated `symfony/html-sanitizer` requirement to `^8.0` (Symfony 7 is no longer supported).
 
-## [0.1.0](https://github.com/duonrun/sire/releases/tag/0.1.0) (2026-01-31)
+## [0.1.0](https://github.com/duoncode/sire/releases/tag/0.1.0) (2026-01-31)
 
 Initial release.
 
