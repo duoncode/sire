@@ -6,10 +6,10 @@
 	"authors": [
 		{
 			"name": "Ernst",
-			"email": "ernst@duon.run"
+			"email": "ernst@duon.sh"
 		}
 	],
-	"homepage": "https://duon.run/sire",
+	"homepage": "https://duon.sh/sire",
 	"keywords": [
 		"duon",
 		"validation"
