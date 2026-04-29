@@ -2,6 +2,8 @@
 * text=lf
 
 /.* export-ignore
+/*.dist export-ignore
+/*.toml export-ignore
 /*.xml export-ignore
 /*.yml export-ignore
 /docs/ export-ignore
