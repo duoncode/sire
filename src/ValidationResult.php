@@ -7,9 +7,7 @@ namespace Duon\Sire;
 use JsonSerializable;
 use Override;
 
-/**
- * @psalm-api
- */
+/** @api */
 final class ValidationResult implements JsonSerializable
 {
 	/**

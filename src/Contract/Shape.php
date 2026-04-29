@@ -6,9 +6,7 @@ namespace Duon\Sire\Contract;
 
 use Duon\Sire\ValidationResult;
 
-/**
- * @psalm-api
- */
+/** @api */
 interface Shape
 {
 	public function validate(array $data, int $level = 1): ValidationResult;

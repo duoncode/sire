@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
-/**
- * @psalm-api
- */
+/** @api */
 class Value
 {
 	public function __construct(

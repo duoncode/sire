@@ -6,9 +6,7 @@ namespace Duon\Sire\Contract;
 
 use Duon\Sire\Value;
 
-/**
- * @psalm-api
- */
+/** @api */
 interface TypeCaster
 {
 	public function cast(mixed $pristine, string $label): Value;

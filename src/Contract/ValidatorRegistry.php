@@ -6,9 +6,7 @@ namespace Duon\Sire\Contract;
 
 use Duon\Sire\Validator;
 
-/**
- * @psalm-api
- */
+/** @api */
 interface ValidatorRegistry
 {
 	/** @return array<string, Validator> */

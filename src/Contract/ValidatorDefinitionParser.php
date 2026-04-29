@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Contract;
 
-/**
- * @psalm-api
- */
+/** @api */
 interface ValidatorDefinitionParser
 {
 	/** @return array{name: string, args: list<string>} */

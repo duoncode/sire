@@ -7,9 +7,7 @@ namespace Duon\Sire;
 use Override;
 use ValueError;
 
-/**
- * @psalm-api
- */
+/** @api */
 class Shape implements Contract\Shape
 {
 	/** @var list<Violation> A list of validation violations */

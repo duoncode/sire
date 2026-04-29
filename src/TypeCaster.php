@@ -7,9 +7,7 @@ namespace Duon\Sire;
 use Closure;
 use Override;
 
-/**
- * @psalm-api
- */
+/** @api */
 final class TypeCaster implements Contract\TypeCaster
 {
 	/** @var Closure(mixed, string): Value */

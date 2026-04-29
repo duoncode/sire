@@ -6,9 +6,7 @@ namespace Duon\Sire;
 
 use Closure;
 
-/**
- * @psalm-api
- */
+/** @api */
 class Validator
 {
 	public string $name;

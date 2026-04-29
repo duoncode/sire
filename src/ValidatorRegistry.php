@@ -6,14 +6,10 @@ namespace Duon\Sire;
 
 use Override;
 
-/**
- * @psalm-api
- */
+/** @api */
 final class ValidatorRegistry implements Contract\ValidatorRegistry
 {
-	/**
-	 * @param array<string, Validator> $validators
-	 */
+	/** @param array<string, Validator> $validators */
 	public function __construct(
 		private array $validators = [],
 	) {}
@@ -31,9 +27,7 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 		return new self($validators);
 	}
 
-	/**
-	 * @param array<string, Validator> $validators
-	 */
+	/** @param array<string, Validator> $validators */
 	public function withMany(array $validators): self
 	{
 		$result = $this;

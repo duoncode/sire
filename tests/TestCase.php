@@ -87,4 +87,3 @@ class TestCase extends BaseTestCase
 		};
 	}
 }
-

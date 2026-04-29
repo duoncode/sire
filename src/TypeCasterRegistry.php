@@ -6,14 +6,10 @@ namespace Duon\Sire;
 
 use Override;
 
-/**
- * @psalm-api
- */
+/** @api */
 final class TypeCasterRegistry implements Contract\TypeCasterRegistry
 {
-	/**
-	 * @param array<string, Contract\TypeCaster> $casters
-	 */
+	/** @param array<string, Contract\TypeCaster> $casters */
 	public function __construct(
 		private array $casters = [],
 	) {}
@@ -31,9 +27,7 @@ final class TypeCasterRegistry implements Contract\TypeCasterRegistry
 		return new self($casters);
 	}
 
-	/**
-	 * @param array<string, Contract\TypeCaster> $casters
-	 */
+	/** @param array<string, Contract\TypeCaster> $casters */
 	public function withMany(array $casters): self
 	{
 		$result = $this;

@@ -65,7 +65,7 @@ final class DslSplitter
 
 			if ($char === $delimiter) {
 				$parts[] = '';
-				$index++;
+				$index = count($parts) - 1;
 
 				continue;
 			}

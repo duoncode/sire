@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Contract;
 
-/**
- * @psalm-api
- */
+/** @api */
 interface TypeCasterRegistry
 {
 	/** @return array<string, TypeCaster> */

@@ -7,9 +7,7 @@ namespace Duon\Sire;
 use Override;
 use ValueError;
 
-/**
- * @psalm-api
- */
+/** @api */
 final class ValidatorDefinitionParser implements Contract\ValidatorDefinitionParser
 {
 	#[Override]
