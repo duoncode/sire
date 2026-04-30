@@ -315,7 +315,7 @@ class Shape implements Contract\Shape
 	{
 		foreach ($this->rules as $field => $rule) {
 			if (!isset($values[$field])) {
-				if ($rule->type() == 'bool') {
+				if ($rule->type() === 'bool') {
 					$values[$field] = new Value(false, null);
 
 					continue;
