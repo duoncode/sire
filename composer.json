@@ -34,12 +34,17 @@
 	"scripts": {
 		"test": "./vendor/bin/phpunit --testdox --no-coverage --colors=always",
 		"types": "./vendor/bin/psalm --no-cache",
+		"lint": [
+			"./vendor/bin/mago fmt --check",
+			"./vendor/bin/mago lint"
+		],
 		"mdlint": "markdownlint-cli2 README.md CHANGELOG.md LICENSE.md docs/",
 		"coverage": [
 			"./vendor/bin/phpunit --testdox --path-coverage --coverage-text --coverage-php=.coverage/cover.php --colors=always",
 			"./vendor/bin/coverlyzer .coverage/cover.php"
 		],
 		"ci": [
+			"composer lint",
 			"composer coverage",
 			"composer types",
 			"composer mdlint"
