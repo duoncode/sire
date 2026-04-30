@@ -314,15 +314,17 @@ class Shape implements Contract\Shape
 	protected function fillMissingFromRules(array $values): array
 	{
 		foreach ($this->rules as $field => $rule) {
-			if (!array_key_exists($field, $values)) {
-				if ($rule->type() === 'bool') {
-					$values[$field] = new Value(false, null);
-
-					continue;
-				}
-
-				$values[$field] = new Value(null, null);
+			if (array_key_exists($field, $values)) {
+				continue;
 			}
+
+			if ($rule->type() === 'bool') {
+				$values[$field] = new Value(false, null);
+
+				continue;
+			}
+
+			$values[$field] = new Value(null, null);
 		}
 
 		return $values;
