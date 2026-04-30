@@ -22,7 +22,7 @@ final class ValidatorDefinitionParser implements Contract\ValidatorDefinitionPar
 		}
 
 		$validatorArgs = array_map(
-			fn(string $arg): string => $this->unquoteWrappedArgument($arg),
+			$this->unquoteWrappedArgument(...),
 			array_slice($validatorArray, 1),
 		);
 
