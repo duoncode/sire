@@ -50,33 +50,25 @@ final class DefaultValidators
 			'minlen' => new Validator(
 				'minlen',
 				'Shorter than the minimum length of %4$s characters',
-				static function (Value $value, string ...$args) {
-					return strlen($value->value) >= (int) $args[0];
-				},
+				static fn(Value $value, string ...$args) => strlen($value->value) >= (int) $args[0],
 				true,
 			),
 			'maxlen' => new Validator(
 				'maxlen',
 				'Exeeds the maximum length of %4$s characters',
-				static function (Value $value, string ...$args) {
-					return strlen($value->value) <= (int) $args[0];
-				},
+				static fn(Value $value, string ...$args) => strlen($value->value) <= (int) $args[0],
 				true,
 			),
 			'min' => new Validator(
 				'min',
 				'Lower than the required minimum of %4$s',
-				static function (Value $value, string ...$args) {
-					return (float) $value->value >= (float) $args[0];
-				},
+				static fn(Value $value, string ...$args) => (float) $value->value >= (float) $args[0],
 				true,
 			),
 			'max' => new Validator(
 				'max',
 				'Higher than the allowed maximum of %4$s',
-				static function (Value $value, string ...$args) {
-					return $value->value <= (float) $args[0];
-				},
+				static fn(Value $value, string ...$args) => $value->value <= (float) $args[0],
 				true,
 			),
 			'regex' => new Validator(

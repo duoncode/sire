@@ -14,9 +14,7 @@ class ValidatorTest extends TestCase
 		$validator = new Validator(
 			'same',
 			'Same',
-			static function (Value $value, string $compare): bool {
-				return $value->value === $compare;
-			},
+			static fn(Value $value, string $compare): bool => $value->value === $compare,
 			false,
 		);
 
