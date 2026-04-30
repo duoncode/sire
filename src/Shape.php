@@ -121,7 +121,7 @@ class Shape implements Contract\Shape
 		?int $listIndex,
 	): void {
 		foreach ($error['errors'] ?? [] as $err) {
-			assert($err instanceof Violation);
+			assert($err instanceof Violation, 'Expected nested errors to contain violations');
 			$this->errorList[] = $err;
 		}
 
@@ -270,7 +270,7 @@ class Shape implements Contract\Shape
 
 				if ($type === 'shape') {
 					$shape = $rule->type;
-					assert($shape instanceof Contract\Shape);
+					assert($shape instanceof Contract\Shape, 'Expected shape rule type to be a shape instance');
 					$valObj = $this->toSubValues($value, $shape);
 				} else {
 					$caster = $this->typeCasters[$type] ?? null;
@@ -284,7 +284,7 @@ class Shape implements Contract\Shape
 
 				if ($valObj->error !== null) {
 					if ($rule->type() === 'shape') {
-						assert(is_array($valObj->error));
+						assert(is_array($valObj->error), 'Expected nested shape errors to be arrays');
 						$this->addSubError($field, $valObj->error, $listIndex);
 					} else {
 						if (!is_string($valObj->error)) {
