@@ -11,7 +11,7 @@ final class DefaultTypeCasters
 	{
 		return [
 			'text' => new TypeCaster(
-				function (mixed $pristine, string $_label): Value {
+				static function (mixed $pristine, string $_label): Value {
 					if (self::isEmptyTextInput($pristine)) {
 						return new Value(null, $pristine);
 					}
@@ -20,7 +20,7 @@ final class DefaultTypeCasters
 				},
 			),
 			'bool' => new TypeCaster(
-				function (mixed $pristine, string $label) use ($messages): Value {
+				static function (mixed $pristine, string $label) use ($messages): Value {
 					if (is_bool($pristine)) {
 						return new Value($pristine, $pristine);
 					}
@@ -47,7 +47,7 @@ final class DefaultTypeCasters
 				},
 			),
 			'list' => new TypeCaster(
-				function (mixed $pristine, string $label) use ($messages): Value {
+				static function (mixed $pristine, string $label) use ($messages): Value {
 					if (
 						is_array($pristine)
 						&& ($pristine === [] || array_keys($pristine) === range(0, count($pristine) - 1))
@@ -63,7 +63,7 @@ final class DefaultTypeCasters
 				},
 			),
 			'float' => new TypeCaster(
-				function (mixed $pristine, string $label) use ($messages): Value {
+				static function (mixed $pristine, string $label) use ($messages): Value {
 					if (is_float($pristine) || is_null($pristine)) {
 						return new Value($pristine, $pristine);
 					}
@@ -86,7 +86,7 @@ final class DefaultTypeCasters
 				},
 			),
 			'int' => new TypeCaster(
-				function (mixed $pristine, string $label) use ($messages): Value {
+				static function (mixed $pristine, string $label) use ($messages): Value {
 					if (is_int($pristine) || is_null($pristine)) {
 						return new Value($pristine, $pristine);
 					}

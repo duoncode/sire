@@ -245,7 +245,7 @@ class ShapeTest extends TestCase
 			new Validator(
 				'starts_with',
 				'Must start with %4$s',
-				function (Value $value, string ...$args): bool {
+				static function (Value $value, string ...$args): bool {
 					$prefix = $args[0] ?? '';
 
 					return str_starts_with((string) $value->value, $prefix);
@@ -273,7 +273,7 @@ class ShapeTest extends TestCase
 			'starts_with' => new Validator(
 				'starts_with',
 				'Must start with %4$s',
-				function (Value $value, string ...$args): bool {
+				static function (Value $value, string ...$args): bool {
 					$prefix = $args[0] ?? '';
 
 					return str_starts_with((string) $value->value, $prefix);
@@ -318,7 +318,7 @@ class ShapeTest extends TestCase
 			'list' => 'Invalid list',
 		])->with(
 			'slug',
-			new TypeCaster(function (mixed $pristine, string $label): Value {
+			new TypeCaster(static function (mixed $pristine, string $label): Value {
 				if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
 					return new Value($pristine, $pristine, 'Invalid slug');
 				}
@@ -375,7 +375,7 @@ class ShapeTest extends TestCase
 		$this->expectExceptionMessage('Wrong error type');
 
 		$registry = new TypeCasterRegistry([
-			'text' => new TypeCaster(function (mixed $pristine, string $label): Value {
+			'text' => new TypeCaster(static function (mixed $pristine, string $label): Value {
 				return new Value($pristine, $pristine, ['not', 'a', 'string']);
 			}),
 		]);
@@ -673,7 +673,7 @@ class ShapeTest extends TestCase
 			'starts_with' => new Validator(
 				'starts_with',
 				'Must start with %4$s',
-				function (Value $value, string ...$args): bool {
+				static function (Value $value, string ...$args): bool {
 					$prefix = $args[0] ?? '';
 
 					return str_starts_with((string) $value->value, $prefix);

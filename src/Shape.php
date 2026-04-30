@@ -372,7 +372,7 @@ class Shape implements Contract\Shape
 	protected function getValues(array $values): array
 	{
 		return array_map(
-			function (Value $item): mixed {
+			static function (Value $item): mixed {
 				return $item->value;
 			},
 			$values,
@@ -382,7 +382,7 @@ class Shape implements Contract\Shape
 	protected function getPristineValues(array $values): array
 	{
 		return array_map(
-			function (Value $item): mixed {
+			static function (Value $item): mixed {
 				return $item->pristine;
 			},
 			$values,

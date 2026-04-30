@@ -68,7 +68,7 @@ final class ValidationResult implements JsonSerializable
 		}
 
 		$result['errors'] = array_map(
-			fn(Violation $violation): array => $violation->toArray(),
+			static fn(Violation $violation): array => $violation->toArray(),
 			$this->violations,
 		);
 
@@ -94,7 +94,7 @@ final class ValidationResult implements JsonSerializable
 	private function groupedErrors(): array
 	{
 		$errors = array_map(
-			fn(Violation $violation): array => $violation->toArray(),
+			static fn(Violation $violation): array => $violation->toArray(),
 			$this->violations,
 		);
 
@@ -110,7 +110,7 @@ final class ValidationResult implements JsonSerializable
 			$sections[] = $item;
 		}
 
-		usort($sections, function ($a, $b): int {
+		usort($sections, static function ($a, $b): int {
 			$aa = $a['level'] . $a['title'];
 			$bb = $b['level'] . $b['title'];
 

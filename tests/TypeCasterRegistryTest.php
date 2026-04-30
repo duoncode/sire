@@ -16,12 +16,12 @@ class TypeCasterRegistryTest extends TestCase
 
 		$updatedRegistry = $registry->withMany([
 			'upper' => new TypeCaster(
-				function (mixed $pristine, string $label): Value {
+				static function (mixed $pristine, string $label): Value {
 					return new Value(strtoupper((string) $pristine), $pristine);
 				},
 			),
 			'lower' => new TypeCaster(
-				function (mixed $pristine, string $label): Value {
+				static function (mixed $pristine, string $label): Value {
 					return new Value(strtolower((string) $pristine), $pristine);
 				},
 			),

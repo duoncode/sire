@@ -13,7 +13,7 @@ final class DefaultValidators
 			'required' => new Validator(
 				'required',
 				'Required',
-				function (Value $value, string ...$_args) {
+				static function (Value $value, string ...$_args) {
 					$val = $value->value;
 
 					if (is_null($val)) {
@@ -31,7 +31,7 @@ final class DefaultValidators
 			'email' => new Validator(
 				'email',
 				'Invalid email address',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					$email = filter_var(
 						trim((string) $value->value),
 						\FILTER_VALIDATE_EMAIL,
@@ -50,7 +50,7 @@ final class DefaultValidators
 			'minlen' => new Validator(
 				'minlen',
 				'Shorter than the minimum length of %4$s characters',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					return strlen($value->value) >= (int) $args[0];
 				},
 				true,
@@ -58,7 +58,7 @@ final class DefaultValidators
 			'maxlen' => new Validator(
 				'maxlen',
 				'Exeeds the maximum length of %4$s characters',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					return strlen($value->value) <= (int) $args[0];
 				},
 				true,
@@ -66,7 +66,7 @@ final class DefaultValidators
 			'min' => new Validator(
 				'min',
 				'Lower than the required minimum of %4$s',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					return (float) $value->value >= (float) $args[0];
 				},
 				true,
@@ -74,7 +74,7 @@ final class DefaultValidators
 			'max' => new Validator(
 				'max',
 				'Higher than the allowed maximum of %4$s',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					return $value->value <= (float) $args[0];
 				},
 				true,
@@ -82,7 +82,7 @@ final class DefaultValidators
 			'regex' => new Validator(
 				'regex',
 				'Does not match the required pattern',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					// As regex patterns could contain colons ':' and validator
 					// args are separated by colons and split at their position
 					// we need to join them again
@@ -99,7 +99,7 @@ final class DefaultValidators
 			'in' => new Validator(
 				'in',
 				'Invalid value',
-				function (Value $value, string ...$args) {
+				static function (Value $value, string ...$args) {
 					$allowed = DslSplitter::split($args[0] ?? '', ',');
 
 					return in_array($value->value, $allowed, true);

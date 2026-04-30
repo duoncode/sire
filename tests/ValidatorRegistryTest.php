@@ -18,7 +18,7 @@ class ValidatorRegistryTest extends TestCase
 			'starts_with' => new Validator(
 				'starts_with',
 				'Must start with %4$s',
-				function (Value $value, string ...$args): bool {
+				static function (Value $value, string ...$args): bool {
 					$prefix = $args[0] ?? '';
 
 					return str_starts_with((string) $value->value, $prefix);
@@ -28,7 +28,7 @@ class ValidatorRegistryTest extends TestCase
 			'ends_with' => new Validator(
 				'ends_with',
 				'Must end with %4$s',
-				function (Value $value, string ...$args): bool {
+				static function (Value $value, string ...$args): bool {
 					$suffix = $args[0] ?? '';
 
 					return str_ends_with((string) $value->value, $suffix);
