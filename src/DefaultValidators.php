@@ -102,7 +102,7 @@ final class DefaultValidators
 				function (Value $value, string ...$args) {
 					$allowed = DslSplitter::split($args[0] ?? '', ',');
 
-					return in_array($value->value, $allowed);
+					return in_array($value->value, $allowed, true);
 				},
 				true,
 			),

@@ -31,11 +31,11 @@ final class DefaultTypeCasters
 
 					$tmp = strtolower((string) $pristine);
 
-					if (in_array($tmp, ['1', 'on', 'true', 'yes'])) {
+					if (in_array($tmp, ['1', 'on', 'true', 'yes'], true)) {
 						return new Value(true, $pristine);
 					}
 
-					if (in_array($tmp, ['0', 'off', 'false', 'no', 'null'])) {
+					if (in_array($tmp, ['0', 'off', 'false', 'no', 'null'], true)) {
 						return new Value(false, $pristine);
 					}
 

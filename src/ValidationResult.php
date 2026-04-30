@@ -103,7 +103,7 @@ final class ValidationResult implements JsonSerializable
 		foreach ($errors as $error) {
 			$item = ['title' => $error['title'], 'level' => (string) $error['level']];
 
-			if (in_array($item, $sections)) {
+			if (in_array($item, $sections, true)) {
 				continue;
 			}
 
