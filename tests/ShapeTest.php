@@ -744,28 +744,34 @@ class ShapeTest extends TestCase
 
 	public function testListShape(): void
 	{
-		$testData = [[
-			'int' => 13,
-			'text' => 'Text 1',
-			'single_shape' => [
-				'inner_int' => 23,
-				'inner_email' => 'test@example.com',
+		$testData = [
+			[
+				'int' => 13,
+				'text' => 'Text 1',
+				'single_shape' => [
+					'inner_int' => 23,
+					'inner_email' => 'test@example.com',
+				],
 			],
-		], [
-			'int' => 17,
-			'text' => 'Text 2',
-			'single_shape' => [
-				'inner_int' => '31',
-				'inner_email' => 'example@example.com',
+			[
+				'int' => 17,
+				'text' => 'Text 2',
+				'single_shape' => [
+					'inner_int' => '31',
+					'inner_email' => 'example@example.com',
+				],
+				'list_shape' => [
+					[
+						'inner_int' => '43',
+						'inner_email' => 'example@example.com',
+					],
+					[
+						'inner_int' => '47',
+						'inner_email' => 'example@example.com',
+					],
+				],
 			],
-			'list_shape' => [[
-				'inner_int' => '43',
-				'inner_email' => 'example@example.com',
-			], [
-				'inner_int' => '47',
-				'inner_email' => 'example@example.com',
-			]],
-		]];
+		];
 
 		$shape = new Shape(true);
 		$shape->add('int', 'int', 'required');
@@ -833,7 +839,7 @@ class ShapeTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('must not be empty');
 
-		$shape = new class (langs: ['de', 'en']) extends Shape {
+		$shape = new class(langs: ['de', 'en']) extends Shape {
 			protected function rules(): void
 			{
 				$this->add('', 'Int', 'int');

@@ -23,7 +23,7 @@ final class DslSplitter
 			$char = $input[$i];
 
 			if ($char === '\\') {
-				$nextChar = $i + 1 < $length ? $input[$i + 1] : null;
+				$nextChar = ($i + 1) < $length ? $input[$i + 1] : null;
 
 				if ($nextChar !== null && self::isEscapable($nextChar, $delimiter)) {
 					$parts[$index] .= $nextChar;

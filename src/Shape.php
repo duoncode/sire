@@ -36,7 +36,8 @@ class Shape implements Contract\Shape
 		$this->loadMessages();
 		$this->validatorRegistry = $validatorRegistry ?? ValidatorRegistry::withDefaults();
 		$this->validatorDefinitionParser = $validatorDefinitionParser ?? new ValidatorDefinitionParser();
-		$this->typeCasterRegistry = $typeCasterRegistry ?? TypeCasterRegistry::withDefaults($this->messages);
+		$this->typeCasterRegistry =
+			$typeCasterRegistry ?? TypeCasterRegistry::withDefaults($this->messages);
 		$this->loadDefaultValidators();
 		$this->loadDefaultTypeCasters();
 	}
@@ -119,7 +120,7 @@ class Shape implements Contract\Shape
 		array $error,
 		?int $listIndex,
 	): void {
-		foreach (($error['errors'] ?? []) as $err) {
+		foreach ($error['errors'] ?? [] as $err) {
 			assert($err instanceof Violation);
 			$this->errorList[] = $err;
 		}
@@ -188,10 +189,7 @@ class Shape implements Contract\Shape
 				return;
 			}
 		} else {
-			if (
-				empty($value->value)
-				&& strlen((string) $value->value) === 0 && $validator->skipNull
-			) {
+			if (empty($value->value) && strlen((string) $value->value) === 0 && $validator->skipNull) {
 				return;
 			}
 		}

@@ -52,23 +52,27 @@ class TestCase extends BaseTestCase
 					'inner_int' => 23,
 					'inner_email' => 'test INVALID example.com',
 				],
-				'list_shape' => [[
-					'inner_int' => 'invalid',
-					'inner_email' => 'example@example.com',
-				], [
-					'inner_int' => 29,
-					'inner_email' => 'example@example.com',
-				], [
-					'inner_int' => "37",
-					'inner_email' => 'example INVALID example.com',
-				]],
+				'list_shape' => [
+					[
+						'inner_int' => 'invalid',
+						'inner_email' => 'example@example.com',
+					],
+					[
+						'inner_int' => 29,
+						'inner_email' => 'example@example.com',
+					],
+					[
+						'inner_int' => '37',
+						'inner_email' => 'example INVALID example.com',
+					],
+				],
 			],
 		];
 	}
 
 	public function getListShape(): Shape
 	{
-		return new class (title: 'List Root', list: true) extends Shape {
+		return new class(title: 'List Root', list: true) extends Shape {
 			protected function rules(): void
 			{
 				$this->add('int', 'int', 'required');
