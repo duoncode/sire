@@ -96,7 +96,7 @@ class ValidationResultTest extends TestCase
 		$json = json_encode($result, JSON_THROW_ON_ERROR);
 		$data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-		$this->assertTrue(isset($data['isValid']));
+		$this->assertArrayHasKey('isValid', $data);
 		$this->assertSame(false, $data['isValid']);
 		$this->assertSame('Main', $data['title']);
 		$this->assertSame('Invalid value', $data['violations'][0]['error']);

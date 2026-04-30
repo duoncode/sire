@@ -44,8 +44,8 @@ class ShapeTest extends TestCase
 		$this->assertSame('invalid_int_2', $errors['errors'][1]['label']);
 		$this->assertSame('Invalid number', $errors['map']['invalid_int_1'][0]);
 		$this->assertSame('Invalid number', $errors['map']['invalid_int_2'][0]);
-		$this->assertFalse(isset($errors['map']['valid_int_1']));
-		$this->assertFalse(isset($errors['map']['valid_int_2']));
+		$this->assertArrayNotHasKey('valid_int_1', $errors['map']);
+		$this->assertArrayNotHasKey('valid_int_2', $errors['map']);
 
 		$values = $result->values();
 		$this->assertSame(13, $values['valid_int_1']);
@@ -79,10 +79,10 @@ class ShapeTest extends TestCase
 		$errors = $result->errors();
 		$this->assertSame('Invalid number', $errors['errors'][0]['error']);
 		$this->assertSame('Invalid number', $errors['map']['invalid_float'][0]);
-		$this->assertFalse(isset($errors['map']['valid_float_1']));
-		$this->assertFalse(isset($errors['map']['valid_float_2']));
-		$this->assertFalse(isset($errors['map']['valid_float_3']));
-		$this->assertFalse(isset($errors['map']['valid_float_4']));
+		$this->assertArrayNotHasKey('valid_float_1', $errors['map']);
+		$this->assertArrayNotHasKey('valid_float_2', $errors['map']);
+		$this->assertArrayNotHasKey('valid_float_3', $errors['map']);
+		$this->assertArrayNotHasKey('valid_float_4', $errors['map']);
 	}
 
 	public function testTypeBoolean(): void
@@ -118,8 +118,8 @@ class ShapeTest extends TestCase
 		$this->assertSame('Invalid boolean', $errors['errors'][1]['error']);
 		$this->assertSame('Invalid boolean', $errors['map']['invalid_bool_1'][0]);
 		$this->assertSame('Invalid boolean', $errors['map']['invalid_bool_2'][0]);
-		$this->assertFalse(isset($errors['map']['valid_bool_1']));
-		$this->assertFalse(isset($errors['map']['valid_bool_2']));
+		$this->assertArrayNotHasKey('valid_bool_1', $errors['map']);
+		$this->assertArrayNotHasKey('valid_bool_2', $errors['map']);
 
 		$values = $result->values();
 		$this->assertSame(true, $values['valid_bool_1']);
@@ -205,8 +205,8 @@ class ShapeTest extends TestCase
 		$this->assertSame('Invalid list', $errors['errors'][1]['error']);
 		$this->assertSame('Invalid list', $errors['map']['invalid_list_1'][0]);
 		$this->assertSame('Invalid list', $errors['map']['invalid_list_2'][0]);
-		$this->assertFalse(isset($errors['map']['valid_list_1']));
-		$this->assertFalse(isset($errors['map']['valid_list_2']));
+		$this->assertArrayNotHasKey('valid_list_1', $errors['map']);
+		$this->assertArrayNotHasKey('valid_list_2', $errors['map']);
 
 		$values = $result->values();
 		$this->assertSame([1, 2], $values['valid_list_1']);
@@ -405,12 +405,12 @@ class ShapeTest extends TestCase
 		$values = $result->values();
 		$this->assertSame('Test', $values['unknown_1']);
 		$this->assertSame(13, $values['unknown_2']);
-		$this->assertFalse(isset($values['unknown_3']));
+		$this->assertArrayNotHasKey('unknown_3', $values);
 
 		$pristine = $result->pristineValues();
 		$this->assertSame('Test', $pristine['unknown_1']);
 		$this->assertSame('13', $pristine['unknown_2']);
-		$this->assertFalse(isset($pristine['unknown_3']));
+		$this->assertArrayNotHasKey('unknown_3', $pristine);
 
 		$shape = new Shape(false, true);
 		$shape->add('unknown_1', 'text');

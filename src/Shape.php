@@ -77,7 +77,7 @@ class Shape implements Contract\Shape
 				// add an empty array for this item which will be
 				// filled in case of error. Allows to show errors
 				// next to the field in frontend (still TODO)
-				if (!isset($this->errorMap[$listIndex])) {
+				if (!array_key_exists($listIndex, $this->errorMap)) {
 					$this->errorMap[$listIndex] = [];
 				}
 
@@ -150,13 +150,13 @@ class Shape implements Contract\Shape
 		);
 
 		if ($listIndex === null) {
-			if (!isset($this->errorMap[$field])) {
+			if (!array_key_exists($field, $this->errorMap)) {
 				$this->errorMap[$field] = [];
 			}
 
 			$this->errorMap[$field][] = $error;
 		} else {
-			if (!isset($this->errorMap[$listIndex][$field])) {
+			if (!array_key_exists($field, $this->errorMap[$listIndex] ?? [])) {
 				$this->errorMap[$listIndex][$field] = [];
 			}
 
@@ -176,7 +176,7 @@ class Shape implements Contract\Shape
 		$validatorName = $parsedValidator['name'];
 		$validatorArgs = $parsedValidator['args'];
 
-		if (!isset($this->validators[$validatorName])) {
+		if (!array_key_exists($validatorName, $this->validators)) {
 			throw new ValueError(
 				sprintf('Unknown validator "%s" in field "%s"', $validatorName, $field),
 			);
@@ -314,7 +314,7 @@ class Shape implements Contract\Shape
 	protected function fillMissingFromRules(array $values): array
 	{
 		foreach ($this->rules as $field => $rule) {
-			if (!isset($values[$field])) {
+			if (!array_key_exists($field, $values)) {
 				if ($rule->type() === 'bool') {
 					$values[$field] = new Value(false, null);
 
