@@ -184,14 +184,8 @@ class Shape implements Contract\Shape
 
 		$validator = $this->validators[$validatorName];
 
-		if (is_array($value->value)) {
-			if (empty($value->value) && $validator->skipNull) {
-				return;
-			}
-		} else {
-			if (empty($value->value) && strlen((string) $value->value) === 0 && $validator->skipNull) {
-				return;
-			}
+		if ($validator->skipNull && self::isSkippableEmptyValue($value->value)) {
+			return;
 		}
 
 		if (!$validator->validate($value, ...$validatorArgs)) {
@@ -208,6 +202,11 @@ class Shape implements Contract\Shape
 				$listIndex,
 			);
 		}
+	}
+
+	private static function isSkippableEmptyValue(mixed $value): bool
+	{
+		return $value === [] || $value === null || $value === false || $value === '';
 	}
 
 	protected function toSubValues(mixed $pristine, Contract\Shape $shape): Value

@@ -12,7 +12,7 @@ final class DefaultTypeCasters
 		return [
 			'text' => new TypeCaster(
 				function (mixed $pristine, string $_label): Value {
-					if (empty($pristine)) {
+					if (self::isEmptyTextInput($pristine)) {
 						return new Value(null, $pristine);
 					}
 
@@ -103,5 +103,18 @@ final class DefaultTypeCasters
 				},
 			),
 		];
+	}
+
+	private static function isEmptyTextInput(mixed $value): bool
+	{
+		return (
+			$value === null
+			|| $value === false
+			|| $value === 0
+			|| $value === 0.0
+			|| $value === ''
+			|| $value === '0'
+			|| $value === []
+		);
 	}
 }
