@@ -8,7 +8,10 @@ use ValueError;
 
 final class DslSplitter
 {
-	/** @return list<string> */
+	/**
+	 * @mago-expect lint:halstead
+	 * @return list<string>
+	 */
 	public static function split(
 		string $input,
 		string $delimiter,
