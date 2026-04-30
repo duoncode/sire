@@ -1,3 +1,7 @@
+/.coverage
+/site
+/tmp
+/vendor
 *.log
 .cache
 .env
@@ -5,11 +9,5 @@
 .phpunit.result.cache
 __pycache__
 composer.lock
-/site
-/tmp
-/vendor
-/coverage
-
-# Local config overrides (not committed)
-/phpunit.xml
-/psalm.xml
+phpunit.xml
+psalm.xml
