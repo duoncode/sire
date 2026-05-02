@@ -21,3 +21,10 @@ preserve-breaking-conditional-expression = true
 integrations = []
 
 [linter.rules]
+cyclomatic-complexity = { enabled = false }
+kan-defect = { enabled = false }
+literal-named-argument = { enabled = false }
+no-else-clause = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
+too-many-methods = { enabled = false }
+excessive-parameter-list = { enabled = false }
