@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Duon\Sire;
 
 use Closure;
+use Override;
 
 /** @api */
-final class Validator
+final class Validator implements Contract\Validator
 {
 	public string $name;
 	public string $message;
-	public bool $skipNull;
+	public bool $skipEmpty;
 	private Closure $validator;
 
 	/** @param Closure(Contract\Value, string...): bool $validator */
@@ -19,14 +20,15 @@ final class Validator
 		string $name,
 		string $message,
 		Closure $validator,
-		bool $skipNull,
+		bool $skipEmpty,
 	) {
 		$this->name = $name;
 		$this->message = $message;
 		$this->validator = $validator;
-		$this->skipNull = $skipNull;
+		$this->skipEmpty = $skipEmpty;
 	}
 
+	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{
 		$func = $this->validator;

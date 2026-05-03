@@ -9,11 +9,11 @@ use Override;
 
 final class DefaultValidators implements Contract\ValidatorRegistry
 {
-	/** @var array<string, Validator> */
+	/** @var array<string, Contract\Validator> */
 	private array $loaded = [];
 
 	#[Override]
-	public function get(string $name): ?Validator
+	public function get(string $name): ?Contract\Validator
 	{
 		if (array_key_exists($name, $this->loaded)) {
 			return $this->loaded[$name];

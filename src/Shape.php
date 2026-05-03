@@ -50,7 +50,7 @@ final class Shape implements Contract\Shape
 		return $this;
 	}
 
-	public function validator(string $name, Validator $validator): self
+	public function validator(string $name, Contract\Validator $validator): self
 	{
 		$this->config->validator($name, $validator);
 

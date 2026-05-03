@@ -9,7 +9,7 @@ use Override;
 /** @api */
 final class ValidatorRegistry implements Contract\ValidatorRegistry
 {
-	/** @param array<string, Validator> $validators */
+	/** @param array<string, Contract\Validator> $validators */
 	public function __construct(
 		private array $validators = [],
 		private ?Contract\ValidatorRegistry $fallback = null,
@@ -20,7 +20,7 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 		return new self([], new DefaultValidators());
 	}
 
-	public function with(string $name, Validator $validator): self
+	public function with(string $name, Contract\Validator $validator): self
 	{
 		$validators = $this->validators;
 		$validators[$name] = $validator;
@@ -28,7 +28,7 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 		return new self($validators, $this->fallback);
 	}
 
-	/** @param array<string, Validator> $validators */
+	/** @param array<string, Contract\Validator> $validators */
 	public function withMany(array $validators): self
 	{
 		$result = $this;
@@ -41,7 +41,7 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 	}
 
 	#[Override]
-	public function get(string $name): ?Validator
+	public function get(string $name): ?Contract\Validator
 	{
 		if (array_key_exists($name, $this->validators)) {
 			return $this->validators[$name];
