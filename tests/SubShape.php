@@ -15,7 +15,8 @@ final class SubShape implements ShapeContract
 
 	public function __construct(bool $list = false, ?string $title = null)
 	{
-		$this->shape = new Shape(list: $list, title: $title);
+		$this->shape = $list ? Shape::list() : new Shape();
+		$this->shape->title($title);
 		$this->shape->add('inner_int', 'int', 'required')->label('Int');
 		$this->shape->add('inner_email', 'text', 'required', 'email')->label('Email');
 	}
