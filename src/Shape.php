@@ -64,14 +64,14 @@ final class Shape implements Contract\Shape
 		return $this;
 	}
 
-	public function coercer(string $name, Contract\Coercer $coercer): self
+	public function type(string $name, Contract\Coercer $coercer): self
 	{
 		$this->config->coercer($name, $coercer);
 
 		return $this;
 	}
 
-	public function coercers(Contract\CoercerRegistry $registry): self
+	public function types(Contract\CoercerRegistry $registry): self
 	{
 		$this->config->coercers($registry);
 

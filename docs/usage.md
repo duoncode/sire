@@ -217,8 +217,8 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 
 - Use `validator()` to add or replace one validator.
 - Use `validators()` to replace the validator registry.
-- Use `coercer()` to add or replace one coercer.
-- Use `coercers()` to replace the coercer registry.
+- Use `type()` to add or replace one base type with its coercer.
+- Use `types()` to replace the coercer registry.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
 ## Next steps

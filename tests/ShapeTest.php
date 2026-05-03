@@ -311,7 +311,7 @@ class ShapeTest extends TestCase
 
 	public function testCustomCoercer(): void
 	{
-		$shape = new Shape()->coercer(
+		$shape = new Shape()->type(
 			'slug',
 			new class implements CoercerContract {
 				#[Override]
@@ -385,7 +385,7 @@ class ShapeTest extends TestCase
 			},
 		]);
 
-		$shape = new Shape()->coercers($registry);
+		$shape = new Shape()->types($registry);
 		$shape->add('field', 'text');
 		$shape->validate(['field' => 'value']);
 	}
