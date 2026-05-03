@@ -12,16 +12,26 @@ class Shape implements Contract\Shape
 {
 	/** @var list<Violation> A list of validation violations */
 	public array $errorList = [];
+
+	/** @var array<string, Validator> */
 	protected array $validators = [];
+
 	protected int $level = 0;
+
 	/** @var array<string, Rule> */
 	protected array $rules = [];
+
 	protected array $errorMap = [];
+
 	protected array $messages = [];
+
 	/** @var array<string, Contract\TypeCaster> */
 	protected array $typeCasters = [];
+
 	protected Contract\ValidatorRegistry $validatorRegistry;
+
 	protected Contract\ValidatorDefinitionParser $validatorDefinitionParser;
+
 	protected Contract\TypeCasterRegistry $typeCasterRegistry;
 
 	public function __construct(
@@ -64,33 +74,19 @@ class Shape implements Contract\Shape
 	public function validate(array $data, int $level = 1): ValidationResult
 	{
 		$this->level = $level;
-		$this->errorList = [];
-		$this->errorMap = [];
-
 		$this->rules();
 
-		$values = $this->readValues($data);
-		$validatedValues = [];
+		$result = new ValidationRun(
+			$this->definition(),
+			$data,
+			$level,
+			$this->toSubValues(...),
+		)->validate();
 
-		if ($this->list) {
-			foreach ($values as $listIndex => $subValues) {
-				// add an empty array for this item which will be
-				// filled in case of error. Allows to show errors
-				// next to the field in frontend (still TODO)
-				if (!array_key_exists($listIndex, $this->errorMap)) {
-					$this->errorMap[$listIndex] = [];
-				}
+		$this->errorList = $result->violations();
+		$this->errorMap = $result->map();
 
-				$validatedValues[] = $this->validateItem(
-					$subValues,
-					$listIndex,
-				);
-			}
-		} else {
-			$validatedValues = $this->validateItem($values);
-		}
-
-		if (count($this->errorList) === 0) {
+		if ($result->isValid()) {
 			$this->review();
 		}
 
@@ -99,39 +95,20 @@ class Shape implements Contract\Shape
 			$this->title,
 			$this->errorMap,
 			$this->errorList,
-			$this->extractValues($validatedValues),
-			$this->extractPristineValues($validatedValues),
+			$result->values(),
+			$result->pristineValues(),
 		);
 	}
 
 	/**
 	 * This method is called before validation starts.
 	 *
-	 * It can be overwritten to add rules in a reusable shape
+	 * It can be overwritten to add rules in a reusable shape.
 	 */
 	protected function rules(): void
 	{
 		// Like:
 		// $this->add('field', 'bool, 'required')->label('remember');
-	}
-
-	protected function addSubError(
-		string $field,
-		array $error,
-		?int $listIndex,
-	): void {
-		foreach ($error['errors'] ?? [] as $err) {
-			assert($err instanceof Violation, 'Expected nested errors to contain violations');
-			$this->errorList[] = $err;
-		}
-
-		$subErrorMap = is_array($error['map'] ?? null) ? $error['map'] : [];
-
-		if ($listIndex === null) {
-			$this->errorMap[$field] = $subErrorMap;
-		} else {
-			$this->errorMap[$listIndex][$field] = $subErrorMap;
-		}
 	}
 
 	protected function addError(
@@ -166,49 +143,6 @@ class Shape implements Contract\Shape
 		$this->errorList[] = $violation;
 	}
 
-	protected function validateField(
-		string $field,
-		Value $value,
-		string $validatorDefinition,
-		?int $listIndex,
-	): void {
-		$parsedValidator = $this->validatorDefinitionParser->parse($validatorDefinition);
-		$validatorName = $parsedValidator['name'];
-		$validatorArgs = $parsedValidator['args'];
-
-		if (!array_key_exists($validatorName, $this->validators)) {
-			throw new ValueError(
-				sprintf('Unknown validator "%s" in field "%s"', $validatorName, $field),
-			);
-		}
-
-		$validator = $this->validators[$validatorName];
-
-		if ($validator->skipNull && self::isSkippableEmptyValue($value->value)) {
-			return;
-		}
-
-		if (!$validator->validate($value, ...$validatorArgs)) {
-			$this->addError(
-				$field,
-				$this->rules[$field]->name(),
-				sprintf(
-					$validator->message,
-					$this->rules[$field]->name(),
-					$field,
-					print_r($value->pristine, true),
-					...$validatorArgs,
-				),
-				$listIndex,
-			);
-		}
-	}
-
-	private static function isSkippableEmptyValue(mixed $value): bool
-	{
-		return $value === [] || $value === null || $value === false || $value === '';
-	}
-
 	protected function toSubValues(mixed $pristine, Contract\Shape $shape): Value
 	{
 		$result = $shape->validate($pristine, $this->level + 1);
@@ -227,164 +161,11 @@ class Shape implements Contract\Shape
 		);
 	}
 
-	protected function extractValues(array $validatedValues): array
-	{
-		if ($this->list) {
-			$values = [];
-
-			foreach ($validatedValues as $item) {
-				$values[] = $this->getValues($item);
-			}
-
-			return $values;
-		}
-
-		return $this->getValues($validatedValues);
-	}
-
-	protected function extractPristineValues(array $validatedValues): array
-	{
-		if ($this->list) {
-			$pristineValues = [];
-
-			foreach ($validatedValues as $item) {
-				$pristineValues[] = $this->getPristineValues($item);
-			}
-
-			return $pristineValues;
-		}
-
-		return $this->getPristineValues($validatedValues);
-	}
-
-	protected function readFromData(array $data, ?int $listIndex = null): array
-	{
-		$values = [];
-
-		foreach ($data as $field => $value) {
-			$rule = $this->rules[$field] ?? null;
-
-			if ($rule) {
-				$label = $rule->name();
-				$type = $rule->type();
-
-				if ($type === 'shape') {
-					$shape = $rule->type;
-					assert($shape instanceof Contract\Shape, 'Expected shape rule type to be a shape instance');
-					$valObj = $this->toSubValues($value, $shape);
-				} else {
-					$caster = $this->typeCasters[$type] ?? null;
-
-					if ($caster === null) {
-						throw new ValueError('Wrong shape type');
-					}
-
-					$valObj = $caster->cast($value, $label);
-				}
-
-				if ($valObj->error !== null) {
-					if ($rule->type() === 'shape') {
-						assert(is_array($valObj->error), 'Expected nested shape errors to be arrays');
-						$this->addSubError($field, $valObj->error, $listIndex);
-					} else {
-						if (!is_string($valObj->error)) {
-							throw new ValueError('Wrong error type');
-						}
-
-						$this->addError(
-							$field,
-							$this->rules[$field]->name(),
-							$valObj->error,
-							$listIndex,
-						);
-					}
-				}
-
-				$values[$field] = $valObj;
-			} else {
-				if ($this->keepUnknown) {
-					$values[$field] = new Value($value, $value);
-				}
-			}
-		}
-
-		return $values;
-	}
-
-	protected function fillMissingFromRules(array $values): array
-	{
-		foreach ($this->rules as $field => $rule) {
-			if (array_key_exists($field, $values)) {
-				continue;
-			}
-
-			if ($rule->type() === 'bool') {
-				$values[$field] = new Value(false, null);
-
-				continue;
-			}
-
-			$values[$field] = new Value(null, null);
-		}
-
-		return $values;
-	}
-
-	protected function readValues(array $data): array
-	{
-		if ($this->list) {
-			$values = [];
-
-			foreach ($data as $listIndex => $item) {
-				$subValues = $this->readFromData($item, $listIndex);
-				$values[] = $this->fillMissingFromRules($subValues);
-			}
-
-			return $values;
-		}
-		$values = $this->readFromData($data);
-
-		return $this->fillMissingFromRules($values);
-	}
-
-	protected function validateItem(array $values, ?int $listIndex = null): array
-	{
-		foreach ($this->rules as $field => $rule) {
-			foreach ($rule->validators as $validator) {
-				$this->validateField(
-					$field,
-					$values[$field],
-					$validator,
-					$listIndex,
-				);
-			}
-		}
-
-		return $values;
-	}
-
 	protected function review(): void
 	{
-		// Can be overwritten in subclasses to make additional checks
-		//
-		// Implementations should call $this->addError('field_name', 'label', 'Error message');
+		// Can be overwritten in subclasses to make additional checks.
+		// Implementations should call $this->addError('field_name', 'label', 'Error message')
 		// in case of error.
-	}
-
-	protected function getValues(array $values): array
-	{
-		return array_map(
-			static fn(Value $item): mixed => $item->value,
-			$values,
-		);
-	}
-
-	protected function getPristineValues(array $values): array
-	{
-		return array_map(
-			static fn(Value $item): mixed => $item->pristine,
-			$values,
-		);
 	}
 
 	protected function loadMessages(): void
@@ -422,5 +203,18 @@ class Shape implements Contract\Shape
 		foreach ($this->typeCasterRegistry->all() as $name => $caster) {
 			$this->typeCasters[$name] = $caster;
 		}
+	}
+
+	private function definition(): ShapeDefinition
+	{
+		return new ShapeDefinition(
+			$this->list,
+			$this->keepUnknown,
+			$this->title,
+			$this->rules,
+			$this->validators,
+			$this->typeCasters,
+			$this->validatorDefinitionParser,
+		);
 	}
 }
