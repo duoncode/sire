@@ -221,7 +221,7 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `types()` to replace the coercer registry.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validators should type against `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Coercers return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough.
+Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough.
 
 ```php
 <?php
