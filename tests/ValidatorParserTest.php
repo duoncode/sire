@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\ValidatorDefinitionParser;
+use Duon\Sire\ValidatorParser;
 use ValueError;
 
-class ValidatorDefinitionParserTest extends TestCase
+class ValidatorParserTest extends TestCase
 {
 	public function testParsesSimpleValidator(): void
 	{
-		$parser = new ValidatorDefinitionParser();
+		$parser = new ValidatorParser();
 
 		$this->assertSame(
 			['name' => 'required', 'args' => []],
@@ -21,7 +21,7 @@ class ValidatorDefinitionParserTest extends TestCase
 
 	public function testParsesQuotedAndEscapedArguments(): void
 	{
-		$parser = new ValidatorDefinitionParser();
+		$parser = new ValidatorParser();
 
 		$this->assertSame(
 			['name' => 'starts_with', 'args' => ['http://']],
@@ -36,7 +36,7 @@ class ValidatorDefinitionParserTest extends TestCase
 
 	public function testParsesRegexWithColonLikeLegacyDsl(): void
 	{
-		$parser = new ValidatorDefinitionParser();
+		$parser = new ValidatorParser();
 
 		$this->assertSame(
 			[
@@ -52,7 +52,7 @@ class ValidatorDefinitionParserTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('unclosed quote');
 
-		$parser = new ValidatorDefinitionParser();
+		$parser = new ValidatorParser();
 		$parser->parse('in:"foo,bar');
 	}
 
@@ -61,13 +61,13 @@ class ValidatorDefinitionParserTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('missing validator name');
 
-		$parser = new ValidatorDefinitionParser();
+		$parser = new ValidatorParser();
 		$parser->parse(':10');
 	}
 
 	public function testParsesEmptyArgument(): void
 	{
-		$parser = new ValidatorDefinitionParser();
+		$parser = new ValidatorParser();
 
 		$this->assertSame(
 			['name' => 'regex', 'args' => ['']],

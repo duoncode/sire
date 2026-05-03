@@ -25,7 +25,7 @@ final class Shape implements Contract\Shape
 
 	private Contract\ValidatorRegistry $validatorRegistry;
 
-	private Contract\ValidatorDefinitionParser $validatorDefinitionParser;
+	private Contract\ValidatorParser $validatorParser;
 
 	private Contract\TypeCasterRegistry $typeCasterRegistry;
 
@@ -35,13 +35,13 @@ final class Shape implements Contract\Shape
 		array $langs = [],
 		private ?string $title = null,
 		?Contract\ValidatorRegistry $validatorRegistry = null,
-		?Contract\ValidatorDefinitionParser $validatorDefinitionParser = null,
+		?Contract\ValidatorParser $validatorParser = null,
 		?Contract\TypeCasterRegistry $typeCasterRegistry = null,
 	) {
 		unset($langs);
 		$messages = self::messages();
 		$this->validatorRegistry = $validatorRegistry ?? ValidatorRegistry::withDefaults();
-		$this->validatorDefinitionParser = $validatorDefinitionParser ?? new ValidatorDefinitionParser();
+		$this->validatorParser = $validatorParser ?? new ValidatorParser();
 		$this->typeCasterRegistry = $typeCasterRegistry ?? TypeCasterRegistry::withDefaults($messages);
 		$this->loadDefaultValidators();
 		$this->loadDefaultTypeCasters();
@@ -131,7 +131,7 @@ final class Shape implements Contract\Shape
 			$this->rules,
 			$this->validators,
 			$this->typeCasters,
-			$this->validatorDefinitionParser,
+			$this->validatorParser,
 			$this->reviewCallbacks,
 		);
 	}

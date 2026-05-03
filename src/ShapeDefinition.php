@@ -22,7 +22,7 @@ final readonly class ShapeDefinition
 		public array $rules,
 		public array $validators,
 		public array $typeCasters,
-		public Contract\ValidatorDefinitionParser $validatorDefinitionParser,
+		public Contract\ValidatorParser $validatorParser,
 		public array $reviewCallbacks,
 	) {}
 }

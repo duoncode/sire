@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Contract;
 
 /** @api */
-interface ValidatorDefinitionParser
+interface ValidatorParser
 {
 	/** @return array{name: string, args: list<string>} */
 	public function parse(string $validatorDefinition): array;

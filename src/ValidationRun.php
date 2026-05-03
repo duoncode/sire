@@ -64,7 +64,7 @@ final class ValidationRun
 		string $validatorDefinition,
 		?int $listIndex,
 	): void {
-		$parsedValidator = $this->shape->validatorDefinitionParser->parse($validatorDefinition);
+		$parsedValidator = $this->shape->validatorParser->parse($validatorDefinition);
 		$validatorName = $parsedValidator['name'];
 		$validatorArgs = $parsedValidator['args'];
 

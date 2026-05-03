@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\Contract\ValidatorDefinitionParser as ValidatorDefinitionParserContract;
+use Duon\Sire\Contract\ValidatorParser as ValidatorParserContract;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
@@ -268,7 +268,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Required', $result->errors()['map']['field'][0]);
 	}
 
-	public function testCustomValidatorDefinitionParser(): void
+	public function testCustomValidatorParser(): void
 	{
 		$registry = new ValidatorRegistry([
 			'starts_with' => new Validator(
@@ -283,7 +283,7 @@ class ShapeTest extends TestCase
 			),
 		]);
 
-		$parser = new class implements ValidatorDefinitionParserContract {
+		$parser = new class implements ValidatorParserContract {
 			#[Override]
 			/** @return array{name: string, args: list<string>} */
 			public function parse(string $validatorDefinition): array
@@ -299,7 +299,7 @@ class ShapeTest extends TestCase
 
 		$shape = new Shape(
 			validatorRegistry: $registry,
-			validatorDefinitionParser: $parser,
+			validatorParser: $parser,
 		);
 		$shape->add('field', 'text', 'starts_with|foo');
 

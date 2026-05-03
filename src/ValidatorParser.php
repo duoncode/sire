@@ -8,7 +8,7 @@ use Override;
 use ValueError;
 
 /** @api */
-final class ValidatorDefinitionParser implements Contract\ValidatorDefinitionParser
+final class ValidatorParser implements Contract\ValidatorParser
 {
 	#[Override]
 	/** @return array{name: string, args: list<string>} */

@@ -202,7 +202,7 @@ You can provide custom registries when you construct a shape. This is useful for
 
 - Use `ValidatorRegistry::withDefaults()->with(...)` to add validators.
 - Use `TypeCasterRegistry::withDefaults($messages)->with(...)` to add casters.
-- Use a custom `ValidatorDefinitionParser` if you need a different DSL split strategy.
+- Use a custom `ValidatorParser` if you need a different DSL split strategy.
 
 ## Next steps
 
