@@ -7,7 +7,7 @@ namespace Duon\Sire\Contract;
 use Duon\Sire\Value;
 
 /** @api */
-interface TypeCaster
+interface Coercer
 {
-	public function cast(mixed $pristine, string $label): Value;
+	public function coerce(mixed $pristine, string $label): Value;
 }

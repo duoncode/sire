@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Duon\Sire\Tests;
+
+use Closure;
+use Duon\Sire\CoercerRegistry;
+use Duon\Sire\Contract\Coercer as CoercerContract;
+use Duon\Sire\Contract\CoercerRegistry as CoercerRegistryContract;
+use Duon\Sire\Value;
+use Override;
+use RuntimeException;
+
+class CoercerRegistryTest extends TestCase
+{
+	public function testWithManyAddsCoercers(): void
+	{
+		$registry = new CoercerRegistry();
+
+		$updatedRegistry = $registry->withMany([
+			'upper' => self::coercer(static fn(mixed $pristine): string => strtoupper((string) $pristine)),
+			'lower' => self::coercer(static fn(mixed $pristine): string => strtolower((string) $pristine)),
+		]);
+
+		$this->assertNull($registry->get('upper'));
+		$this->assertSame($updatedRegistry->get('upper'), $updatedRegistry->get('upper'));
+		$this->assertInstanceOf(CoercerContract::class, $updatedRegistry->get('lower'));
+	}
+
+	public function testWithDefaultsHasBuiltInCoercers(): void
+	{
+		$registry = CoercerRegistry::withDefaults(self::messages());
+
+		$this->assertInstanceOf(CoercerContract::class, $registry->get('text'));
+		$this->assertInstanceOf(CoercerContract::class, $registry->get('bool'));
+		$this->assertInstanceOf(CoercerContract::class, $registry->get('int'));
+		$this->assertInstanceOf(CoercerContract::class, $registry->get('float'));
+		$this->assertInstanceOf(CoercerContract::class, $registry->get('list'));
+	}
+
+	public function testWithDefaultsMemoizesBuiltInCoercers(): void
+	{
+		$registry = CoercerRegistry::withDefaults(self::messages());
+
+		$this->assertSame($registry->get('text'), $registry->get('text'));
+	}
+
+	public function testWithDefaultsReturnsNullForUnknownCoercers(): void
+	{
+		$registry = CoercerRegistry::withDefaults(self::messages());
+
+		$this->assertNull($registry->get('unknown'));
+	}
+
+	public function testCustomCoercerShadowsDefaults(): void
+	{
+		$coercer = self::coercer(static fn(mixed $pristine): string => (string) $pristine);
+		$registry = CoercerRegistry::withDefaults(self::messages())->with('text', $coercer);
+
+		$this->assertSame($coercer, $registry->get('text'));
+	}
+
+	public function testLocalCoercerShadowsFallback(): void
+	{
+		$fallback = new class implements CoercerRegistryContract {
+			#[Override]
+			public function get(string $name): ?CoercerContract
+			{
+				throw new RuntimeException('Fallback should not be queried');
+			}
+		};
+
+		$coercer = self::coercer(static fn(mixed $pristine): string => (string) $pristine);
+		$registry = new CoercerRegistry(['text' => $coercer], $fallback);
+
+		$this->assertSame($coercer, $registry->get('text'));
+	}
+
+	/** @return array<string, string> */
+	private static function messages(): array
+	{
+		return [
+			'bool' => 'Invalid boolean',
+			'float' => 'Invalid number',
+			'int' => 'Invalid number',
+			'list' => 'Invalid list',
+		];
+	}
+
+	/** @param Closure(mixed): mixed $callback */
+	private static function coercer(Closure $callback): CoercerContract
+	{
+		return new class($callback) implements CoercerContract {
+			/** @param Closure(mixed): mixed $callback */
+			public function __construct(
+				private readonly Closure $callback,
+			) {}
+
+			#[Override]
+			public function coerce(mixed $pristine, string $label): Value
+			{
+				return new Value(($this->callback)($pristine), $pristine);
+			}
+		};
+	}
+}

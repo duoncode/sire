@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Caster;
+namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Value;
 use Override;
 
-final readonly class FloatingPoint implements Contract\TypeCaster
+final readonly class FloatingPoint implements Contract\Coercer
 {
 	/** @param array<string, string> $messages */
 	public function __construct(
@@ -16,7 +16,7 @@ final readonly class FloatingPoint implements Contract\TypeCaster
 	) {}
 
 	#[Override]
-	public function cast(mixed $pristine, string $label): Value
+	public function coerce(mixed $pristine, string $label): Value
 	{
 		if (is_float($pristine) || is_null($pristine)) {
 			return new Value($pristine, $pristine);

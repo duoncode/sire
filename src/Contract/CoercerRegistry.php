@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Contract;
 
 /** @api */
-interface TypeCasterRegistry
+interface CoercerRegistry
 {
-	public function get(string $name): ?TypeCaster;
+	public function get(string $name): ?Coercer;
 }

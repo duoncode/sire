@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Caster;
+namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Value;
 use Override;
 
-final class Text implements Contract\TypeCaster
+final class Text implements Contract\Coercer
 {
 	#[Override]
-	public function cast(mixed $pristine, string $label): Value
+	public function coerce(mixed $pristine, string $label): Value
 	{
 		if (self::isEmptyTextInput($pristine)) {
 			return new Value(null, $pristine);

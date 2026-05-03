@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\Contract\TypeCaster as TypeCasterContract;
+use Duon\Sire\CoercerRegistry;
+use Duon\Sire\Contract\Coercer as CoercerContract;
 use Duon\Sire\Contract\ValidatorParser as ValidatorParserContract;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
-use Duon\Sire\TypeCasterRegistry;
 use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
 use Duon\Sire\Value;
@@ -309,13 +309,13 @@ class ShapeTest extends TestCase
 		$this->assertSame('Must start with foo', $result->errors()['map']['field'][0]);
 	}
 
-	public function testCustomTypeCaster(): void
+	public function testCustomCoercer(): void
 	{
-		$shape = new Shape()->type(
+		$shape = new Shape()->coercer(
 			'slug',
-			new class implements TypeCasterContract {
+			new class implements CoercerContract {
 				#[Override]
-				public function cast(mixed $pristine, string $label): Value
+				public function coerce(mixed $pristine, string $label): Value
 				{
 					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
 						return new Value($pristine, $pristine, 'Invalid slug');
@@ -371,10 +371,10 @@ class ShapeTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('Wrong error type');
 
-		$registry = new TypeCasterRegistry([
-			'text' => new class implements TypeCasterContract {
+		$registry = new CoercerRegistry([
+			'text' => new class implements CoercerContract {
 				#[Override]
-				public function cast(mixed $pristine, string $label): Value
+				public function coerce(mixed $pristine, string $label): Value
 				{
 					return new Value(
 						$pristine,
@@ -385,7 +385,7 @@ class ShapeTest extends TestCase
 			},
 		]);
 
-		$shape = new Shape()->types($registry);
+		$shape = new Shape()->coercers($registry);
 		$shape->add('field', 'text');
 		$shape->validate(['field' => 'value']);
 	}
