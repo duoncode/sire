@@ -71,6 +71,21 @@ final class Shape implements Contract\Shape
 		return $this;
 	}
 
+	public function message(string $key, string $message): self
+	{
+		$this->config->message($key, $message);
+
+		return $this;
+	}
+
+	/** @param array<string, string> $messages */
+	public function messages(array $messages): self
+	{
+		$this->config->messages($messages);
+
+		return $this;
+	}
+
 	public function types(Contract\CoercerRegistry $registry): self
 	{
 		$this->config->coercers($registry);

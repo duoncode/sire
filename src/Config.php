@@ -67,6 +67,17 @@ final class Config
 		$this->coercers = [];
 	}
 
+	public function message(string $key, string $message): void
+	{
+		$this->messages[$key] = $message;
+	}
+
+	/** @param array<string, string> $messages */
+	public function messages(array $messages): void
+	{
+		$this->messages = array_replace($this->messages, $messages);
+	}
+
 	public function validatorParser(Contract\ValidatorParser $parser): void
 	{
 		$this->validatorParser = $parser;
@@ -106,16 +117,22 @@ final class Config
 		//  e. g. 'int' => 'Invalid number "%3$1" in field "%1$s"'
 
 		return [
-			// Types:
+			// Legacy type keys:
 			'bool' => 'Invalid boolean',
 			'float' => 'Invalid number',
 			'int' => 'Invalid number',
 			'list' => 'Invalid list',
+
+			// Type keys:
+			'type.bool' => 'Invalid boolean',
+			'type.float' => 'Invalid number',
+			'type.int' => 'Invalid number',
+			'type.list' => 'Invalid list',
 		];
 	}
 
 	/** @return array<string, string> */
-	private function messages(): array
+	private function resolvedMessages(): array
 	{
 		return array_replace(self::defaultMessages(), $this->messages);
 	}
@@ -133,7 +150,7 @@ final class Config
 
 	private function resolvedCoercerRegistry(): Contract\CoercerRegistry
 	{
-		$this->coercerRegistry ??= CoercerRegistry::withDefaults($this->messages());
+		$this->coercerRegistry ??= CoercerRegistry::withDefaults($this->resolvedMessages());
 
 		if ($this->coercers === []) {
 			return $this->coercerRegistry;
