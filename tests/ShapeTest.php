@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\CoercerRegistry;
-use Duon\Sire\Contract\Coercer as CoercerContract;
-use Duon\Sire\Contract\ValidatorParser as ValidatorParserContract;
+use Duon\Sire\Contract\Coercer;
+use Duon\Sire\Contract\ValidatorParser;
 use Duon\Sire\Contract\Value;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
@@ -283,7 +283,7 @@ class ShapeTest extends TestCase
 			),
 		]);
 
-		$parser = new class implements ValidatorParserContract {
+		$parser = new class implements ValidatorParser {
 			#[Override]
 			/** @return array{name: string, args: list<string>} */
 			public function parse(string $validatorDefinition): array
@@ -313,7 +313,7 @@ class ShapeTest extends TestCase
 	{
 		$shape = new Shape()->type(
 			'slug',
-			new class implements CoercerContract {
+			new class implements Coercer {
 				#[Override]
 				public function coerce(mixed $pristine, string $label): Value
 				{
@@ -372,7 +372,7 @@ class ShapeTest extends TestCase
 		$this->expectExceptionMessage('Wrong error type');
 
 		$registry = new CoercerRegistry([
-			'text' => new class implements CoercerContract {
+			'text' => new class implements Coercer {
 				#[Override]
 				public function coerce(mixed $pristine, string $label): Value
 				{

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\Contract\ValidatorRegistry as ValidatorRegistryContract;
+use Duon\Sire\Contract;
 use Duon\Sire\Contract\Value;
 use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
@@ -73,7 +73,7 @@ class ValidatorRegistryTest extends TestCase
 
 	public function testLocalValidatorShadowsFallback(): void
 	{
-		$fallback = new class implements ValidatorRegistryContract {
+		$fallback = new class implements Contract\ValidatorRegistry {
 			#[Override]
 			public function get(string $name): ?Validator
 			{

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\Contract\Shape as ShapeContract;
+use Duon\Sire\Contract;
 use Duon\Sire\Result;
 use Duon\Sire\Shape;
 use Override;
 
-final class SubShape implements ShapeContract
+final class SubShape implements Contract\Shape
 {
 	private Shape $shape;
 

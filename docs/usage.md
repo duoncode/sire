@@ -185,12 +185,12 @@ $users->add('address', $address);
 ```php
 <?php
 
-use Duon\Sire\Contract\Shape as ShapeContract;
+use Duon\Sire\Contract;
 use Duon\Sire\Shape;
 use Duon\Sire\Result;
 use Override;
 
-final class LoginShape implements ShapeContract
+final class LoginShape implements Contract\Shape
 {
     private Shape $shape;
 

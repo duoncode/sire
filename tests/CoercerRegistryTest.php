@@ -7,8 +7,7 @@ namespace Duon\Sire\Tests;
 use Closure;
 use Duon\Sire\CoercerRegistry;
 use Duon\Sire\Contract;
-use Duon\Sire\Contract\Coercer as CoercerContract;
-use Duon\Sire\Contract\CoercerRegistry as CoercerRegistryContract;
+use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Value;
 use Override;
 use RuntimeException;
@@ -26,18 +25,18 @@ class CoercerRegistryTest extends TestCase
 
 		$this->assertNull($registry->get('upper'));
 		$this->assertSame($updatedRegistry->get('upper'), $updatedRegistry->get('upper'));
-		$this->assertInstanceOf(CoercerContract::class, $updatedRegistry->get('lower'));
+		$this->assertInstanceOf(Coercer::class, $updatedRegistry->get('lower'));
 	}
 
 	public function testWithDefaultsHasBuiltInCoercers(): void
 	{
 		$registry = CoercerRegistry::withDefaults(self::messages());
 
-		$this->assertInstanceOf(CoercerContract::class, $registry->get('text'));
-		$this->assertInstanceOf(CoercerContract::class, $registry->get('bool'));
-		$this->assertInstanceOf(CoercerContract::class, $registry->get('int'));
-		$this->assertInstanceOf(CoercerContract::class, $registry->get('float'));
-		$this->assertInstanceOf(CoercerContract::class, $registry->get('list'));
+		$this->assertInstanceOf(Coercer::class, $registry->get('text'));
+		$this->assertInstanceOf(Coercer::class, $registry->get('bool'));
+		$this->assertInstanceOf(Coercer::class, $registry->get('int'));
+		$this->assertInstanceOf(Coercer::class, $registry->get('float'));
+		$this->assertInstanceOf(Coercer::class, $registry->get('list'));
 	}
 
 	public function testWithDefaultsMemoizesBuiltInCoercers(): void
@@ -64,9 +63,9 @@ class CoercerRegistryTest extends TestCase
 
 	public function testLocalCoercerShadowsFallback(): void
 	{
-		$fallback = new class implements CoercerRegistryContract {
+		$fallback = new class implements Contract\CoercerRegistry {
 			#[Override]
-			public function get(string $name): ?CoercerContract
+			public function get(string $name): ?Coercer
 			{
 				throw new RuntimeException('Fallback should not be queried');
 			}
@@ -90,9 +89,9 @@ class CoercerRegistryTest extends TestCase
 	}
 
 	/** @param Closure(mixed): mixed $callback */
-	private static function coercer(Closure $callback): CoercerContract
+	private static function coercer(Closure $callback): Coercer
 	{
-		return new class($callback) implements CoercerContract {
+		return new class($callback) implements Coercer {
 			/** @param Closure(mixed): mixed $callback */
 			public function __construct(
 				private readonly Closure $callback,
