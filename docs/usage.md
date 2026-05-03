@@ -221,27 +221,31 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `types()` to replace the coercer registry.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validator callbacks and coercers should type against `Duon\Sire\Contract\Value`. Return `Duon\Sire\Value` when the default immutable value object is enough.
+Custom validators and coercers should type against `Duon\Sire\Contract\Value`. Return `Duon\Sire\Value` when the default immutable value object is enough.
 
 ```php
 <?php
 
 use Duon\Sire\Contract\Coercer;
+use Duon\Sire\Contract\Validator;
 use Duon\Sire\Contract\Value;
 use Duon\Sire\Shape;
-use Duon\Sire\Validator;
 use Override;
 
 $shape = new Shape();
 $shape->validator(
     'starts_with',
-    new Validator(
-        'starts_with',
-        'Must start with %4$s',
-        static fn(Value $value, string ...$args): bool =>
-            str_starts_with((string) $value->value, $args[0] ?? ''),
-        true,
-    ),
+    new class implements Validator {
+        public string $message = 'Must start with %4$s';
+
+        public bool $skipEmpty = true;
+
+        #[Override]
+        public function validate(Value $value, string ...$args): bool
+        {
+            return str_starts_with((string) $value->value, $args[0] ?? '');
+        }
+    },
 );
 
 $shape->type(

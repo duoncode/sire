@@ -4,7 +4,8 @@
 
 ### Breaking
 
-- Made `Shape`, `Validator`, and `Value` final; custom shapes now need composition through `Contract\Shape` instead of subclassing.
+- Made `Shape` and `Value` final; custom shapes now need composition through `Contract\Shape` instead of subclassing.
+- Removed the closure-backed `Validator` adapter; custom validators now implement `Contract\Validator`.
 - Replaced `Shape` constructor configuration, including `list`, `keepUnknown`, `title`, registry, parser, and `langs` arguments, with fluent configuration methods.
 - Renamed `ValidationResult` to `Result` and updated `Contract\Shape::validate()` accordingly.
 - Renamed `ValidatorDefinitionParser` to `ValidatorParser`.
@@ -17,6 +18,7 @@
 - Added `Shape::review()` callbacks with `Review` for post-validation checks after successful normal validation.
 - Added `Rule::prepare()` to normalize present field values before type casting and nested shape validation.
 - Added quoted and escaped arguments for validator DSL definitions.
+- Added `Contract\Validator` and built-in validator classes.
 
 ## [0.3.0](https://github.com/duoncode/sire/releases/tag/0.3.0) (2026-02-21)
 

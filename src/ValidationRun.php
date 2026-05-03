@@ -77,7 +77,7 @@ final class ValidationRun
 			);
 		}
 
-		if ($validator->skipNull && self::isSkippableEmptyValue($value->value)) {
+		if ($validator->skipEmpty && self::isSkippableEmptyValue($value->value)) {
 			return;
 		}
 

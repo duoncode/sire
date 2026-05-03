@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Contract;
 
-use Duon\Sire\Validator;
-
 /** @api */
 interface ValidatorRegistry
 {

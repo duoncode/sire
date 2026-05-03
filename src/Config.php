@@ -20,7 +20,7 @@ final class Config
 
 	private ?Contract\ValidatorRegistry $validatorRegistry = null;
 
-	/** @var array<string, Validator> */
+	/** @var array<string, Contract\Validator> */
 	private array $validators = [];
 
 	private ?Contract\CoercerRegistry $coercerRegistry = null;
@@ -45,7 +45,7 @@ final class Config
 		$this->title = $title;
 	}
 
-	public function validator(string $name, Validator $validator): void
+	public function validator(string $name, Contract\Validator $validator): void
 	{
 		$this->validators[$name] = $validator;
 	}

@@ -6,12 +6,12 @@ namespace Duon\Sire\Tests;
 
 use Duon\Sire\CoercerRegistry;
 use Duon\Sire\Contract\Coercer;
+use Duon\Sire\Contract\Validator;
 use Duon\Sire\Contract\ValidatorParser;
 use Duon\Sire\Contract\Value;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
-use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
 use Duon\Sire\Violation;
 use Override;
@@ -243,16 +243,7 @@ class ShapeTest extends TestCase
 	{
 		$registry = ValidatorRegistry::withDefaults()->with(
 			'starts_with',
-			new Validator(
-				'starts_with',
-				'Must start with %4$s',
-				static function (Value $value, string ...$args): bool {
-					$prefix = $args[0] ?? '';
-
-					return str_starts_with((string) $value->value, $prefix);
-				},
-				true,
-			),
+			self::startsWithValidator(),
 		);
 
 		$shape = new Shape()->validators($registry);
@@ -271,16 +262,7 @@ class ShapeTest extends TestCase
 	public function testCustomValidatorParser(): void
 	{
 		$registry = new ValidatorRegistry([
-			'starts_with' => new Validator(
-				'starts_with',
-				'Must start with %4$s',
-				static function (Value $value, string ...$args): bool {
-					$prefix = $args[0] ?? '';
-
-					return str_starts_with((string) $value->value, $prefix);
-				},
-				true,
-			),
+			'starts_with' => self::startsWithValidator(),
 		]);
 
 		$parser = new class implements ValidatorParser {
@@ -676,16 +658,7 @@ class ShapeTest extends TestCase
 	{
 		$shape = new Shape()->validator(
 			'starts_with',
-			new Validator(
-				'starts_with',
-				'Must start with %4$s',
-				static function (Value $value, string ...$args): bool {
-					$prefix = $args[0] ?? '';
-
-					return str_starts_with((string) $value->value, $prefix);
-				},
-				true,
-			),
+			self::startsWithValidator(),
 		);
 		$shape->add('escaped', 'text', 'starts_with:http\\://');
 		$shape->add('quoted', 'text', 'starts_with:"http://"');
@@ -950,20 +923,37 @@ class ShapeTest extends TestCase
 		$shape->add('', 'Int', 'int');
 	}
 
-	public function testEmptyArraySkipsValidatorWithSkipNull(): void
+	public function testEmptyArraySkipsValidatorWithSkipEmpty(): void
 	{
 		$testData = [
 			'items' => [],
 		];
 
 		$shape = new Shape();
-		// Using 'in' validator which has skipNull=true
+		// Using 'in' validator which has skipEmpty=true
 		$shape->add('items', 'list', 'in:a,b,c');
 
-		// Empty array should skip the 'in' validator (which has skipNull=true)
+		// Empty array should skip the 'in' validator (which has skipEmpty=true)
 		// and not produce an error
 		$result = $shape->validate($testData);
 		$this->assertTrue($result->isValid());
+	}
+
+	private static function startsWithValidator(): Validator
+	{
+		return new class implements Validator {
+			public string $message = 'Must start with %4$s';
+
+			public bool $skipEmpty = true;
+
+			#[Override]
+			public function validate(Value $value, string ...$args): bool
+			{
+				$prefix = $args[0] ?? '';
+
+				return str_starts_with((string) $value->value, $prefix);
+			}
+		};
 	}
 
 	public function testEmptyRegexPatternFails(): void

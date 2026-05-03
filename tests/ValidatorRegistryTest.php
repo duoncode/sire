@@ -6,7 +6,6 @@ namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Contract\Value;
-use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
 use Override;
 use RuntimeException;
@@ -18,13 +17,13 @@ class ValidatorRegistryTest extends TestCase
 		$registry = new ValidatorRegistry();
 
 		$updatedRegistry = $registry->withMany([
-			'starts_with' => self::stringValidator('starts_with'),
-			'ends_with' => self::stringValidator('ends_with'),
+			'starts_with' => self::stringValidator(),
+			'ends_with' => self::stringValidator(),
 		]);
 
 		$this->assertNull($registry->get('starts_with'));
 		$this->assertSame($updatedRegistry->get('starts_with'), $updatedRegistry->get('starts_with'));
-		$this->assertInstanceOf(Validator::class, $updatedRegistry->get('ends_with'));
+		$this->assertInstanceOf(Contract\Validator::class, $updatedRegistry->get('ends_with'));
 	}
 
 	public function testWithManyHandlesEmptyInput(): void
@@ -39,14 +38,14 @@ class ValidatorRegistryTest extends TestCase
 	{
 		$registry = ValidatorRegistry::withDefaults();
 
-		$this->assertInstanceOf(Validator::class, $registry->get('required'));
-		$this->assertInstanceOf(Validator::class, $registry->get('email'));
-		$this->assertInstanceOf(Validator::class, $registry->get('minlen'));
-		$this->assertInstanceOf(Validator::class, $registry->get('maxlen'));
-		$this->assertInstanceOf(Validator::class, $registry->get('min'));
-		$this->assertInstanceOf(Validator::class, $registry->get('max'));
-		$this->assertInstanceOf(Validator::class, $registry->get('regex'));
-		$this->assertInstanceOf(Validator::class, $registry->get('in'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('required'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('email'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('minlen'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('maxlen'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('min'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('max'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('regex'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('in'));
 	}
 
 	public function testWithDefaultsMemoizesBuiltInValidators(): void
@@ -65,7 +64,7 @@ class ValidatorRegistryTest extends TestCase
 
 	public function testCustomValidatorShadowsDefaults(): void
 	{
-		$validator = self::stringValidator('required');
+		$validator = self::stringValidator();
 		$registry = ValidatorRegistry::withDefaults()->with('required', $validator);
 
 		$this->assertSame($validator, $registry->get('required'));
@@ -75,25 +74,30 @@ class ValidatorRegistryTest extends TestCase
 	{
 		$fallback = new class implements Contract\ValidatorRegistry {
 			#[Override]
-			public function get(string $name): ?Validator
+			public function get(string $name): ?Contract\Validator
 			{
 				throw new RuntimeException('Fallback should not be queried');
 			}
 		};
 
-		$validator = self::stringValidator('required');
+		$validator = self::stringValidator();
 		$registry = new ValidatorRegistry(['required' => $validator], $fallback);
 
 		$this->assertSame($validator, $registry->get('required'));
 	}
 
-	private static function stringValidator(string $name): Validator
+	private static function stringValidator(): Contract\Validator
 	{
-		return new Validator(
-			$name,
-			'Must match',
-			static fn(Value $value, string ...$_args): bool => is_string($value->value),
-			true,
-		);
+		return new class implements Contract\Validator {
+			public string $message = 'Must match';
+
+			public bool $skipEmpty = true;
+
+			#[Override]
+			public function validate(Value $value, string ...$args): bool
+			{
+				return is_string($value->value);
+			}
+		};
 	}
 }
