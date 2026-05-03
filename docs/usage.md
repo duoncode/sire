@@ -226,24 +226,22 @@ Custom validators and coercers should type against `Duon\Sire\Contract\Value`. C
 ```php
 <?php
 
-use Duon\Sire\Coercion as CoercionResult;
-use Duon\Sire\Contract\Coercer;
-use Duon\Sire\Contract\Coercion;
-use Duon\Sire\Contract\Validator;
-use Duon\Sire\Contract\Value;
+use Duon\Sire\Coercion;
+use Duon\Sire\Contract;
 use Duon\Sire\Shape;
+use Duon\Sire\Value;
 use Override;
 
 $shape = new Shape();
 $shape->validator(
     'starts_with',
-    new class implements Validator {
+    new class implements Contract\Validator {
         public string $message = 'Must start with %4$s';
 
         public bool $skipEmpty = true;
 
         #[Override]
-        public function validate(Value $value, string ...$args): bool
+        public function validate(Contract\Value $value, string ...$args): bool
         {
             return str_starts_with((string) $value->value, $args[0] ?? '');
         }
@@ -252,13 +250,13 @@ $shape->validator(
 
 $shape->type(
     'slug',
-    new class implements Coercer {
+    new class implements Contract\Coercer {
         #[Override]
-        public function coerce(mixed $pristine, string $label): Coercion
+        public function coerce(mixed $pristine, string $label): Contract\Coercion
         {
             $value = strtolower(trim((string) $pristine));
 
-            return new CoercionResult(new \Duon\Sire\Value($value, $pristine));
+            return new Coercion(new Value($value, $pristine));
         }
     },
 );
