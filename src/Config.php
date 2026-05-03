@@ -83,9 +83,9 @@ final class Config
 			$this->keepUnknown,
 			$this->title,
 			$rules,
-			$this->loadedValidators(),
-			$this->loadedTypeCasters(),
-			$this->loadedValidatorParser(),
+			$this->resolvedValidatorRegistry(),
+			$this->resolvedTypeCasterRegistry(),
+			$this->resolvedValidatorParser(),
 			$reviewCallbacks,
 		);
 	}
@@ -120,29 +120,29 @@ final class Config
 		return array_replace(self::defaultMessages(), $this->messages);
 	}
 
-	/** @return array<string, Validator> */
-	private function loadedValidators(): array
+	private function resolvedValidatorRegistry(): Contract\ValidatorRegistry
 	{
-		return array_replace($this->loadedValidatorRegistry()->all(), $this->validators);
+		$this->validatorRegistry ??= ValidatorRegistry::withDefaults();
+
+		if ($this->validators === []) {
+			return $this->validatorRegistry;
+		}
+
+		return new ValidatorRegistry($this->validators, $this->validatorRegistry);
 	}
 
-	private function loadedValidatorRegistry(): Contract\ValidatorRegistry
+	private function resolvedTypeCasterRegistry(): Contract\TypeCasterRegistry
 	{
-		return $this->validatorRegistry ??= ValidatorRegistry::withDefaults();
+		$this->typeCasterRegistry ??= TypeCasterRegistry::withDefaults($this->messages());
+
+		if ($this->typeCasters === []) {
+			return $this->typeCasterRegistry;
+		}
+
+		return new TypeCasterRegistry($this->typeCasters, $this->typeCasterRegistry);
 	}
 
-	/** @return array<string, Contract\TypeCaster> */
-	private function loadedTypeCasters(): array
-	{
-		return array_replace($this->loadedTypeCasterRegistry()->all(), $this->typeCasters);
-	}
-
-	private function loadedTypeCasterRegistry(): Contract\TypeCasterRegistry
-	{
-		return $this->typeCasterRegistry ??= TypeCasterRegistry::withDefaults($this->messages());
-	}
-
-	private function loadedValidatorParser(): Contract\ValidatorParser
+	private function resolvedValidatorParser(): Contract\ValidatorParser
 	{
 		return $this->validatorParser ??= new ValidatorParser();
 	}

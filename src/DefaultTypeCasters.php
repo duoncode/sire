@@ -4,18 +4,39 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
-final class DefaultTypeCasters
+use Override;
+
+final class DefaultTypeCasters implements Contract\TypeCasterRegistry
 {
-	/** @return array<string, Contract\TypeCaster> */
-	public static function all(array $messages): array
+	/** @var array<string, Contract\TypeCaster> */
+	private array $loaded = [];
+
+	/** @param array<string, string> $messages */
+	public function __construct(
+		private readonly array $messages,
+	) {}
+
+	#[Override]
+	public function get(string $name): ?Contract\TypeCaster
 	{
-		return [
+		if (array_key_exists($name, $this->loaded)) {
+			return $this->loaded[$name];
+		}
+
+		$caster = match ($name) {
 			'text' => self::text(),
-			'bool' => self::bool($messages),
-			'list' => self::list($messages),
-			'float' => self::float($messages),
-			'int' => self::int($messages),
-		];
+			'bool' => $this->bool(),
+			'list' => $this->list(),
+			'float' => $this->float(),
+			'int' => $this->int(),
+			default => null,
+		};
+
+		if ($caster !== null) {
+			$this->loaded[$name] = $caster;
+		}
+
+		return $caster;
 	}
 
 	private static function text(): Contract\TypeCaster
@@ -31,8 +52,10 @@ final class DefaultTypeCasters
 		);
 	}
 
-	private static function bool(array $messages): Contract\TypeCaster
+	private function bool(): Contract\TypeCaster
 	{
+		$messages = $this->messages;
+
 		return new TypeCaster(
 			static function (mixed $pristine, string $label) use ($messages): Value {
 				if (is_bool($pristine)) {
@@ -62,8 +85,10 @@ final class DefaultTypeCasters
 		);
 	}
 
-	private static function list(array $messages): Contract\TypeCaster
+	private function list(): Contract\TypeCaster
 	{
+		$messages = $this->messages;
+
 		return new TypeCaster(
 			static function (mixed $pristine, string $label) use ($messages): Value {
 				if (
@@ -82,8 +107,10 @@ final class DefaultTypeCasters
 		);
 	}
 
-	private static function float(array $messages): Contract\TypeCaster
+	private function float(): Contract\TypeCaster
 	{
+		$messages = $this->messages;
+
 		return new TypeCaster(
 			static function (mixed $pristine, string $label) use ($messages): Value {
 				if (is_float($pristine) || is_null($pristine)) {
@@ -109,8 +136,10 @@ final class DefaultTypeCasters
 		);
 	}
 
-	private static function int(array $messages): Contract\TypeCaster
+	private function int(): Contract\TypeCaster
 	{
+		$messages = $this->messages;
+
 		return new TypeCaster(
 			static function (mixed $pristine, string $label) use ($messages): Value {
 				if (is_int($pristine) || is_null($pristine)) {

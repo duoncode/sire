@@ -11,8 +11,6 @@ final readonly class ShapeDefinition
 {
 	/**
 	 * @param array<string, Rule> $rules
-	 * @param array<string, Validator> $validators
-	 * @param array<string, Contract\TypeCaster> $typeCasters
 	 * @param list<Closure(Review): void> $reviewCallbacks
 	 */
 	public function __construct(
@@ -20,8 +18,8 @@ final readonly class ShapeDefinition
 		public bool $keepUnknown,
 		public ?string $title,
 		public array $rules,
-		public array $validators,
-		public array $typeCasters,
+		public Contract\ValidatorRegistry $validators,
+		public Contract\TypeCasterRegistry $typeCasters,
 		public Contract\ValidatorParser $validatorParser,
 		public array $reviewCallbacks,
 	) {}

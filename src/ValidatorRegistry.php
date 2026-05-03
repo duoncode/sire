@@ -12,11 +12,12 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 	/** @param array<string, Validator> $validators */
 	public function __construct(
 		private array $validators = [],
+		private ?Contract\ValidatorRegistry $fallback = null,
 	) {}
 
 	public static function withDefaults(): self
 	{
-		return new self(DefaultValidators::all());
+		return new self([], new DefaultValidators());
 	}
 
 	public function with(string $name, Validator $validator): self
@@ -24,7 +25,7 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 		$validators = $this->validators;
 		$validators[$name] = $validator;
 
-		return new self($validators);
+		return new self($validators, $this->fallback);
 	}
 
 	/** @param array<string, Validator> $validators */
@@ -40,9 +41,12 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 	}
 
 	#[Override]
-	/** @return array<string, Validator> */
-	public function all(): array
+	public function get(string $name): ?Validator
 	{
-		return $this->validators;
+		if (array_key_exists($name, $this->validators)) {
+			return $this->validators[$name];
+		}
+
+		return $this->fallback?->get($name);
 	}
 }

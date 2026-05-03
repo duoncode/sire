@@ -68,13 +68,13 @@ final class ValidationRun
 		$validatorName = $parsedValidator['name'];
 		$validatorArgs = $parsedValidator['args'];
 
-		if (!array_key_exists($validatorName, $this->shape->validators)) {
+		$validator = $this->shape->validators->get($validatorName);
+
+		if ($validator === null) {
 			throw new ValueError(
 				sprintf('Unknown validator "%s" in field "%s"', $validatorName, $rule->field),
 			);
 		}
-
-		$validator = $this->shape->validators[$validatorName];
 
 		if ($validator->skipNull && self::isSkippableEmptyValue($value->value)) {
 			return;
@@ -189,7 +189,7 @@ final class ValidationRun
 			return $this->toSubValues($value, $shape);
 		}
 
-		$caster = $this->shape->typeCasters[$type] ?? null;
+		$caster = $this->shape->typeCasters->get($type);
 
 		if ($caster === null) {
 			throw new ValueError('Wrong shape type');

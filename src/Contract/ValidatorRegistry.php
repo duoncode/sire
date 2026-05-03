@@ -9,6 +9,5 @@ use Duon\Sire\Validator;
 /** @api */
 interface ValidatorRegistry
 {
-	/** @return array<string, Validator> */
-	public function all(): array;
+	public function get(string $name): ?Validator;
 }
