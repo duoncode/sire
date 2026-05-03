@@ -71,6 +71,11 @@ final class ErrorBag
 		}
 	}
 
+	public function hasErrors(): bool
+	{
+		return count($this->violations) > 0;
+	}
+
 	public function map(): array
 	{
 		return $this->map;

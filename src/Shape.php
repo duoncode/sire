@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
+use Closure;
 use Override;
 use ValueError;
 
 /** @api */
 class Shape implements Contract\Shape
 {
-	/** @var list<Violation> A list of validation violations */
-	public array $errorList = [];
-
 	/** @var array<string, Validator> */
 	protected array $validators = [];
 
@@ -21,9 +19,10 @@ class Shape implements Contract\Shape
 	/** @var array<string, Rule> */
 	protected array $rules = [];
 
-	protected array $errorMap = [];
-
 	protected array $messages = [];
+
+	/** @var list<Closure(ReviewContext): void> */
+	private array $reviewCallbacks = [];
 
 	/** @var array<string, Contract\TypeCaster> */
 	protected array $typeCasters = [];
@@ -37,12 +36,13 @@ class Shape implements Contract\Shape
 	public function __construct(
 		protected bool $list = false,
 		protected bool $keepUnknown = false,
-		protected array $langs = [],
+		array $langs = [],
 		protected ?string $title = null,
 		?Contract\ValidatorRegistry $validatorRegistry = null,
 		?Contract\ValidatorDefinitionParser $validatorDefinitionParser = null,
 		?Contract\TypeCasterRegistry $typeCasterRegistry = null,
 	) {
+		unset($langs);
 		$this->loadMessages();
 		$this->validatorRegistry = $validatorRegistry ?? ValidatorRegistry::withDefaults();
 		$this->validatorDefinitionParser = $validatorDefinitionParser ?? new ValidatorDefinitionParser();
@@ -63,11 +63,21 @@ class Shape implements Contract\Shape
 			);
 		}
 
-		$rule = new Rule($field, $type, $validators);
+		/** @var list<string> $validatorList */
+		$validatorList = $validators;
+		$rule = new Rule($field, $type, $validatorList);
 
 		$this->rules[$field] = $rule;
 
 		return $rule;
+	}
+
+	/** @param Closure(ReviewContext): void $callback */
+	public function review(Closure $callback): self
+	{
+		$this->reviewCallbacks[] = $callback;
+
+		return $this;
 	}
 
 	#[Override]
@@ -76,28 +86,12 @@ class Shape implements Contract\Shape
 		$this->level = $level;
 		$this->rules();
 
-		$result = new ValidationRun(
+		return new ValidationRun(
 			$this->definition(),
 			$data,
 			$level,
 			$this->toSubValues(...),
 		)->validate();
-
-		$this->errorList = $result->violations();
-		$this->errorMap = $result->map();
-
-		if ($result->isValid()) {
-			$this->review();
-		}
-
-		return new ValidationResult(
-			$this->list,
-			$this->title,
-			$this->errorMap,
-			$this->errorList,
-			$result->values(),
-			$result->pristineValues(),
-		);
 	}
 
 	/**
@@ -109,38 +103,6 @@ class Shape implements Contract\Shape
 	{
 		// Like:
 		// $this->add('field', 'bool, 'required')->label('remember');
-	}
-
-	protected function addError(
-		string $field,
-		string $label,
-		string $error,
-		?int $listIndex = null,
-	): void {
-		$violation = new Violation(
-			$error,
-			$this->title,
-			$this->level,
-			$listIndex,
-			$field,
-			$label,
-		);
-
-		if ($listIndex === null) {
-			if (!array_key_exists($field, $this->errorMap)) {
-				$this->errorMap[$field] = [];
-			}
-
-			$this->errorMap[$field][] = $error;
-		} else {
-			if (!array_key_exists($field, $this->errorMap[$listIndex] ?? [])) {
-				$this->errorMap[$listIndex][$field] = [];
-			}
-
-			$this->errorMap[$listIndex][$field][] = $error;
-		}
-
-		$this->errorList[] = $violation;
 	}
 
 	protected function toSubValues(mixed $pristine, Contract\Shape $shape): Value
@@ -159,13 +121,6 @@ class Shape implements Contract\Shape
 				'map' => $result->map(),
 			],
 		);
-	}
-
-	protected function review(): void
-	{
-		// Can be overwritten in subclasses to make additional checks.
-		// Implementations should call $this->addError('field_name', 'label', 'Error message')
-		// in case of error.
 	}
 
 	protected function loadMessages(): void
@@ -215,6 +170,7 @@ class Shape implements Contract\Shape
 			$this->validators,
 			$this->typeCasters,
 			$this->validatorDefinitionParser,
+			$this->reviewCallbacks,
 		);
 	}
 }
