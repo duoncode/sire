@@ -30,18 +30,35 @@ class TypeCasterRegistryTest extends TestCase
 
 	public function testWithDefaultsHasBuiltInCasters(): void
 	{
-		$registry = TypeCasterRegistry::withDefaults([
-			'bool' => 'Invalid boolean',
-			'float' => 'Invalid number',
-			'int' => 'Invalid number',
-			'list' => 'Invalid list',
-		]);
+		$registry = TypeCasterRegistry::withDefaults(self::messages());
 
 		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('text'));
 		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('bool'));
 		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('int'));
 		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('float'));
 		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('list'));
+	}
+
+	public function testWithDefaultsMemoizesBuiltInCasters(): void
+	{
+		$registry = TypeCasterRegistry::withDefaults(self::messages());
+
+		$this->assertSame($registry->get('text'), $registry->get('text'));
+	}
+
+	public function testWithDefaultsReturnsNullForUnknownCasters(): void
+	{
+		$registry = TypeCasterRegistry::withDefaults(self::messages());
+
+		$this->assertNull($registry->get('unknown'));
+	}
+
+	public function testCustomCasterShadowsDefaults(): void
+	{
+		$caster = self::caster(static fn(mixed $pristine): string => (string) $pristine);
+		$registry = TypeCasterRegistry::withDefaults(self::messages())->with('text', $caster);
+
+		$this->assertSame($caster, $registry->get('text'));
 	}
 
 	public function testLocalCasterShadowsFallback(): void
@@ -58,6 +75,17 @@ class TypeCasterRegistryTest extends TestCase
 		$registry = new TypeCasterRegistry(['text' => $caster], $fallback);
 
 		$this->assertSame($caster, $registry->get('text'));
+	}
+
+	/** @return array<string, string> */
+	private static function messages(): array
+	{
+		return [
+			'bool' => 'Invalid boolean',
+			'float' => 'Invalid number',
+			'int' => 'Invalid number',
+			'list' => 'Invalid list',
+		];
 	}
 
 	/** @param callable(mixed): mixed $callback */

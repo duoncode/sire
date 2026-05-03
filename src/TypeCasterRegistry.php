@@ -17,7 +17,7 @@ final class TypeCasterRegistry implements Contract\TypeCasterRegistry
 
 	public static function withDefaults(array $messages): self
 	{
-		return new self(DefaultTypeCasters::all($messages));
+		return new self([], new DefaultTypeCasters($messages));
 	}
 
 	public function with(string $name, Contract\TypeCaster $caster): self
