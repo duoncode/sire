@@ -8,7 +8,8 @@ namespace Duon\Sire;
 final readonly class Coercion implements Contract\Coercion
 {
 	public function __construct(
-		public Contract\Value $value,
+		public mixed $value,
+		public mixed $pristine,
 		public ?string $error = null,
 	) {}
 }

@@ -302,12 +302,13 @@ class ShapeTest extends TestCase
 				{
 					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
 						return new Coercion(
-							new \Duon\Sire\Value($pristine, $pristine),
+							$pristine,
+							$pristine,
 							'Invalid slug',
 						);
 					}
 
-					return new Coercion(new \Duon\Sire\Value($pristine, $pristine));
+					return new Coercion($pristine, $pristine);
 				}
 			},
 		);
@@ -329,7 +330,7 @@ class ShapeTest extends TestCase
 				{
 					$value = is_string($pristine) ? strtoupper($pristine) : $pristine;
 
-					return new Coercion(new \Duon\Sire\Value($value, $pristine));
+					return new Coercion($value, $pristine);
 				}
 			},
 		]);

@@ -6,7 +6,6 @@ namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
-use Duon\Sire\Value;
 use Override;
 
 final class Text implements Contract\Coercer
@@ -15,10 +14,10 @@ final class Text implements Contract\Coercer
 	public function coerce(mixed $pristine, string $label): Contract\Coercion
 	{
 		if (self::isEmptyTextInput($pristine)) {
-			return new Coercion(new Value(null, $pristine));
+			return new Coercion(null, $pristine);
 		}
 
-		return new Coercion(new Value((string) $pristine, $pristine));
+		return new Coercion((string) $pristine, $pristine);
 	}
 
 	private static function isEmptyTextInput(mixed $value): bool

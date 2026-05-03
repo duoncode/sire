@@ -6,7 +6,7 @@
 
 - Made `Shape` and `Value` final; custom shapes now need composition through `Contract\Shape` instead of subclassing.
 - Removed the closure-backed `Validator` adapter; custom validators now implement `Contract\Validator`.
-- Removed coercion errors from `Contract\Value`; custom coercers now return `Contract\Coercion`.
+- Removed coercion errors from `Contract\Value`; custom coercers now return `Contract\Coercion` with direct `value`, `pristine`, and `error` properties.
 - Removed `skipEmpty` from `Contract\Validator`; regular validators now skip empty values and validators that must run on empty values implement `Contract\ValidatesEmpty`.
 - Replaced `Shape` constructor configuration, including `list`, `keepUnknown`, `title`, registry, parser, and `langs` arguments, with fluent configuration methods.
 - Renamed `ValidationResult` to `Result` and updated `Contract\Shape::validate()` accordingly.

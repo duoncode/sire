@@ -7,7 +7,9 @@ namespace Duon\Sire\Contract;
 /** @api */
 interface Coercion
 {
-	public Value $value { get; }
+	public mixed $value { get; }
+
+	public mixed $pristine { get; }
 
 	public ?string $error { get; }
 }

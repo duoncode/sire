@@ -195,7 +195,10 @@ final class ValidationRun
 
 		$coercion = $coercer->coerce($value, $rule->name());
 
-		return new ReadValue($coercion->value, $coercion->error);
+		return new ReadValue(
+			new \Duon\Sire\Value($coercion->value, $coercion->pristine),
+			$coercion->error,
+		);
 	}
 
 	private function toSubValues(mixed $pristine, Contract\Shape $shape): ReadValue
