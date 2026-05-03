@@ -249,7 +249,7 @@ $shape->type(
     'slug',
     new class implements Contract\Coercer {
         #[Override]
-        public function coerce(mixed $pristine, string $label): Contract\Coercion
+        public function coerce(mixed $pristine): Contract\Coercion
         {
             $value = strtolower(trim((string) $pristine));
 

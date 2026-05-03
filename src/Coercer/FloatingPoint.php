@@ -12,7 +12,7 @@ use Override;
 final readonly class FloatingPoint implements Contract\Coercer
 {
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Contract\Coercion
+	public function coerce(mixed $pristine): Contract\Coercion
 	{
 		if (is_float($pristine) || is_null($pristine)) {
 			return new Coercion($pristine, $pristine);

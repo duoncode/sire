@@ -326,7 +326,7 @@ class ShapeTest extends TestCase
 			'slug',
 			new class implements Coercer {
 				#[Override]
-				public function coerce(mixed $pristine, string $label): \Duon\Sire\Contract\Coercion
+				public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 				{
 					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
 						return new Coercion(
@@ -354,7 +354,7 @@ class ShapeTest extends TestCase
 		$registry = new CoercerRegistry([
 			'upper' => new class implements Coercer {
 				#[Override]
-				public function coerce(mixed $pristine, string $label): \Duon\Sire\Contract\Coercion
+				public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 				{
 					$value = is_string($pristine) ? strtoupper($pristine) : $pristine;
 

@@ -87,7 +87,7 @@ class CoercerRegistryTest extends TestCase
 			) {}
 
 			#[Override]
-			public function coerce(mixed $pristine, string $label): Contract\Coercion
+			public function coerce(mixed $pristine): Contract\Coercion
 			{
 				return new Coercion(($this->callback)($pristine), $pristine);
 			}

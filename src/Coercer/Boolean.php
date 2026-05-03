@@ -12,7 +12,7 @@ use Override;
 final readonly class Boolean implements Contract\Coercer
 {
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Contract\Coercion
+	public function coerce(mixed $pristine): Contract\Coercion
 	{
 		if (is_bool($pristine)) {
 			return new Coercion($pristine, $pristine);

@@ -193,7 +193,7 @@ final class ValidationRun
 			throw new ValueError('Wrong shape type');
 		}
 
-		$coercion = $coercer->coerce($value, $rule->name());
+		$coercion = $coercer->coerce($value);
 		$error = $this->formatCoercionFailure($coercion, $rule);
 
 		return new ReadValue(
