@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire;
 
 /** @api */
-final readonly class ReviewContext
+final readonly class Review
 {
 	public function __construct(
 		private ErrorBag $errors,

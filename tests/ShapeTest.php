@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract\ValidatorDefinitionParser as ValidatorDefinitionParserContract;
-use Duon\Sire\ReviewContext;
+use Duon\Sire\Review;
 use Duon\Sire\Shape;
 use Duon\Sire\TypeCaster;
 use Duon\Sire\TypeCasterRegistry;
@@ -708,7 +708,7 @@ class ShapeTest extends TestCase
 	{
 		$shape = new Shape(title: 'Review Title');
 		$shape->add('email', 'text', 'required')->label('Email');
-		$shape->review(static function (ReviewContext $context): void {
+		$shape->review(static function (Review $context): void {
 			self::assertSame(['email' => 'taken@example.com'], $context->values());
 			self::assertSame(['email' => 'taken@example.com'], $context->pristineValues());
 			self::assertFalse($context->isList());
@@ -731,10 +731,10 @@ class ShapeTest extends TestCase
 	public function testAllReviewCallbacksRunOnceReviewStarts(): void
 	{
 		$shape = new Shape();
-		$shape->review(static function (ReviewContext $context): void {
+		$shape->review(static function (Review $context): void {
 			$context->addError('first', 'First', 'First error');
 		});
-		$shape->review(static function (ReviewContext $context): void {
+		$shape->review(static function (Review $context): void {
 			$context->addError('second', 'Second', 'Second error');
 		});
 
@@ -750,7 +750,7 @@ class ShapeTest extends TestCase
 		$called = false;
 		$shape = new Shape();
 		$shape->add('email', 'text', 'required');
-		$shape->review(static function (ReviewContext $_context) use (&$called): void {
+		$shape->review(static function (Review $_context) use (&$called): void {
 			$called = true;
 		});
 

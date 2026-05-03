@@ -116,21 +116,21 @@ Use `Shape::review()` for cross-field checks or other post-validation checks. Re
 ```php
 <?php
 
-use Duon\Sire\ReviewContext;
+use Duon\Sire\Review;
 use Duon\Sire\Shape;
 
 $shape = new Shape();
 $shape->add('password', 'text', 'required');
 $shape->add('confirm', 'text', 'required')->label('Password confirmation');
 
-$shape->review(static function (ReviewContext $context): void {
-    $values = $context->values();
+$shape->review(static function (Review $review): void {
+    $values = $review->values();
 
     if (($values['password'] ?? null) === ($values['confirm'] ?? null)) {
         return;
     }
 
-    $context->addError(
+    $review->addError(
         'confirm',
         'Password confirmation',
         'Passwords do not match',
@@ -138,7 +138,8 @@ $shape->review(static function (ReviewContext $context): void {
 });
 ```
 
-`ReviewContext` exposes the validated values, pristine values, list flag, shape title, validation level, and `addError()`.
+`Review` exposes the validated values, pristine values, list flag, shape title,
+validation level, and `addError()`.
 
 ## Validate nested objects and lists
 
