@@ -83,9 +83,9 @@ final class Config
 			$this->keepUnknown,
 			$this->title,
 			$rules,
-			$this->loadedValidatorRegistry(),
-			$this->loadedTypeCasterRegistry(),
-			$this->loadedValidatorParser(),
+			$this->resolvedValidatorRegistry(),
+			$this->resolvedTypeCasterRegistry(),
+			$this->resolvedValidatorParser(),
 			$reviewCallbacks,
 		);
 	}
@@ -120,7 +120,7 @@ final class Config
 		return array_replace(self::defaultMessages(), $this->messages);
 	}
 
-	private function loadedValidatorRegistry(): Contract\ValidatorRegistry
+	private function resolvedValidatorRegistry(): Contract\ValidatorRegistry
 	{
 		$this->validatorRegistry ??= ValidatorRegistry::withDefaults();
 
@@ -131,7 +131,7 @@ final class Config
 		return new ValidatorRegistry($this->validators, $this->validatorRegistry);
 	}
 
-	private function loadedTypeCasterRegistry(): Contract\TypeCasterRegistry
+	private function resolvedTypeCasterRegistry(): Contract\TypeCasterRegistry
 	{
 		$this->typeCasterRegistry ??= TypeCasterRegistry::withDefaults($this->messages());
 
@@ -142,7 +142,7 @@ final class Config
 		return new TypeCasterRegistry($this->typeCasters, $this->typeCasterRegistry);
 	}
 
-	private function loadedValidatorParser(): Contract\ValidatorParser
+	private function resolvedValidatorParser(): Contract\ValidatorParser
 	{
 		return $this->validatorParser ??= new ValidatorParser();
 	}
