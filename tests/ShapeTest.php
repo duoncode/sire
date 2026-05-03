@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract\ValidatorDefinitionParser as ValidatorDefinitionParserContract;
+use Duon\Sire\ReviewContext;
 use Duon\Sire\Shape;
 use Duon\Sire\TypeCaster;
 use Duon\Sire\TypeCasterRegistry;
@@ -701,6 +702,109 @@ class ShapeTest extends TestCase
 		$errors = $result->errors();
 		$this->assertCount(1, $errors['errors']);
 		$this->assertSame('Must start with http://', $errors['map']['invalid'][0]);
+	}
+
+	public function testReviewCallbackAddsErrors(): void
+	{
+		$shape = new Shape(title: 'Review Title');
+		$shape->add('email', 'text', 'required')->label('Email');
+		$shape->review(static function (ReviewContext $context): void {
+			self::assertSame(['email' => 'taken@example.com'], $context->values());
+			self::assertSame(['email' => 'taken@example.com'], $context->pristineValues());
+			self::assertFalse($context->isList());
+			self::assertSame('Review Title', $context->title());
+			self::assertSame(3, $context->level());
+
+			$context->addError('email', 'Email', 'Already used');
+		});
+
+		$result = $shape->validate(['email' => 'taken@example.com'], 3);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Already used', $result->map()['email'][0]);
+		$this->assertSame('taken@example.com', $result->values()['email']);
+		$this->assertSame('taken@example.com', $result->pristineValues()['email']);
+		$this->assertSame('Review Title', $result->violations()[0]->title);
+		$this->assertSame(3, $result->violations()[0]->level);
+	}
+
+	public function testAllReviewCallbacksRunOnceReviewStarts(): void
+	{
+		$shape = new Shape();
+		$shape->review(static function (ReviewContext $context): void {
+			$context->addError('first', 'First', 'First error');
+		});
+		$shape->review(static function (ReviewContext $context): void {
+			$context->addError('second', 'Second', 'Second error');
+		});
+
+		$result = $shape->validate([]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('First error', $result->map()['first'][0]);
+		$this->assertSame('Second error', $result->map()['second'][0]);
+	}
+
+	public function testReviewCallbacksDoNotRunAfterValidationErrors(): void
+	{
+		$called = false;
+		$shape = new Shape();
+		$shape->add('email', 'text', 'required');
+		$shape->review(static function (ReviewContext $_context) use (&$called): void {
+			$called = true;
+		});
+
+		$result = $shape->validate([]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertFalse($called);
+		$this->assertSame('Required', $result->map()['email'][0]);
+	}
+
+	public function testRulePreparationRunsBeforeScalarValidation(): void
+	{
+		$shape = new Shape();
+		$shape->add('age', 'int')->prepare(static fn(mixed $_value): string => '42');
+
+		$result = $shape->validate(['age' => 'not a number']);
+
+		$this->assertTrue($result->isValid());
+		$this->assertSame(42, $result->values()['age']);
+		$this->assertSame('42', $result->pristineValues()['age']);
+	}
+
+	public function testRulePreparationRunsBeforeNestedShapeValidation(): void
+	{
+		$nested = new Shape();
+		$nested->add('name', 'text', 'required');
+
+		$shape = new Shape();
+		$shape
+			->add('child', $nested)
+			->prepare(static fn(mixed $value): mixed => $value ?? ['name' => 'Prepared']);
+
+		$result = $shape->validate(['child' => null]);
+
+		$this->assertTrue($result->isValid());
+		$this->assertSame('Prepared', $result->values()['child']['name']);
+		$this->assertSame(['name' => 'Prepared'], $result->pristineValues()['child']);
+	}
+
+	public function testRulePreparationDoesNotRunForMissingValues(): void
+	{
+		$called = false;
+		$shape = new Shape();
+		$shape->add('missing', 'text')->prepare(static function (mixed $value) use (&$called): mixed {
+			$called = true;
+
+			return $value;
+		});
+
+		$result = $shape->validate([]);
+
+		$this->assertTrue($result->isValid());
+		$this->assertFalse($called);
+		$this->assertNull($result->values()['missing']);
 	}
 
 	public function testSubShape(): void

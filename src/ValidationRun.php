@@ -43,13 +43,20 @@ final class ValidationRun
 			$validatedValues = $this->validateItem($values);
 		}
 
+		$extractedValues = $this->extractValues($validatedValues);
+		$pristineValues = $this->extractPristineValues($validatedValues);
+
+		if (!$this->errors->hasErrors()) {
+			$this->review($extractedValues, $pristineValues);
+		}
+
 		return new ValidationResult(
 			$this->shape->list,
 			$this->shape->title,
 			$this->errors->map(),
 			$this->errors->violations(),
-			$this->extractValues($validatedValues),
-			$this->extractPristineValues($validatedValues),
+			$extractedValues,
+			$pristineValues,
 		);
 	}
 
@@ -179,6 +186,7 @@ final class ValidationRun
 
 	private function readKnownValue(Rule $rule, mixed $value): Value
 	{
+		$value = $rule->applyPreparation($value);
 		$type = $rule->type();
 
 		if ($type === 'shape') {
@@ -195,6 +203,26 @@ final class ValidationRun
 		}
 
 		return $caster->cast($value, $rule->name());
+	}
+
+	/**
+	 * @param array<string, mixed> $values
+	 * @param array<string, mixed> $pristineValues
+	 */
+	private function review(array $values, array $pristineValues): void
+	{
+		$context = new ReviewContext(
+			$this->errors,
+			$values,
+			$pristineValues,
+			$this->shape->list,
+			$this->shape->title,
+			$this->level,
+		);
+
+		foreach ($this->shape->reviewCallbacks as $review) {
+			$review($context);
+		}
 	}
 
 	/** @param array<string, Value> $values */
