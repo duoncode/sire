@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
+use Duon\Sire\Contract\TypeCaster as TypeCasterContract;
+use Duon\Sire\Contract\TypeCasterRegistry as TypeCasterRegistryContract;
 use Duon\Sire\TypeCaster;
 use Duon\Sire\TypeCasterRegistry;
 use Duon\Sire\Value;
+use Override;
+use RuntimeException;
 
 class TypeCasterRegistryTest extends TestCase
 {
@@ -15,24 +19,13 @@ class TypeCasterRegistryTest extends TestCase
 		$registry = new TypeCasterRegistry();
 
 		$updatedRegistry = $registry->withMany([
-			'upper' => new TypeCaster(
-				static fn(mixed $pristine, string $label): Value => new Value(
-					strtoupper((string) $pristine),
-					$pristine,
-				),
-			),
-			'lower' => new TypeCaster(
-				static fn(mixed $pristine, string $label): Value => new Value(
-					strtolower((string) $pristine),
-					$pristine,
-				),
-			),
+			'upper' => self::caster(static fn(mixed $pristine): string => strtoupper((string) $pristine)),
+			'lower' => self::caster(static fn(mixed $pristine): string => strtolower((string) $pristine)),
 		]);
 
-		$this->assertCount(0, $registry->all());
-		$this->assertCount(2, $updatedRegistry->all());
-		$this->assertArrayHasKey('upper', $updatedRegistry->all());
-		$this->assertArrayHasKey('lower', $updatedRegistry->all());
+		$this->assertNull($registry->get('upper'));
+		$this->assertSame($updatedRegistry->get('upper'), $updatedRegistry->get('upper'));
+		$this->assertInstanceOf(TypeCasterContract::class, $updatedRegistry->get('lower'));
 	}
 
 	public function testWithDefaultsHasBuiltInCasters(): void
@@ -44,10 +37,34 @@ class TypeCasterRegistryTest extends TestCase
 			'list' => 'Invalid list',
 		]);
 
-		$this->assertArrayHasKey('text', $registry->all());
-		$this->assertArrayHasKey('bool', $registry->all());
-		$this->assertArrayHasKey('int', $registry->all());
-		$this->assertArrayHasKey('float', $registry->all());
-		$this->assertArrayHasKey('list', $registry->all());
+		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('text'));
+		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('bool'));
+		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('int'));
+		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('float'));
+		$this->assertInstanceOf(TypeCasterContract::class, $registry->get('list'));
+	}
+
+	public function testLocalCasterShadowsFallback(): void
+	{
+		$fallback = new class implements TypeCasterRegistryContract {
+			#[Override]
+			public function get(string $name): ?TypeCasterContract
+			{
+				throw new RuntimeException('Fallback should not be queried');
+			}
+		};
+
+		$caster = self::caster(static fn(mixed $pristine): string => (string) $pristine);
+		$registry = new TypeCasterRegistry(['text' => $caster], $fallback);
+
+		$this->assertSame($caster, $registry->get('text'));
+	}
+
+	/** @param callable(mixed): mixed $callback */
+	private static function caster(callable $callback): TypeCaster
+	{
+		return new TypeCaster(
+			static fn(mixed $pristine, string $_label): Value => new Value($callback($pristine), $pristine),
+		);
 	}
 }

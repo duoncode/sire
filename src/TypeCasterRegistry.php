@@ -12,6 +12,7 @@ final class TypeCasterRegistry implements Contract\TypeCasterRegistry
 	/** @param array<string, Contract\TypeCaster> $casters */
 	public function __construct(
 		private array $casters = [],
+		private ?Contract\TypeCasterRegistry $fallback = null,
 	) {}
 
 	public static function withDefaults(array $messages): self
@@ -24,7 +25,7 @@ final class TypeCasterRegistry implements Contract\TypeCasterRegistry
 		$casters = $this->casters;
 		$casters[$name] = $caster;
 
-		return new self($casters);
+		return new self($casters, $this->fallback);
 	}
 
 	/** @param array<string, Contract\TypeCaster> $casters */
@@ -40,9 +41,12 @@ final class TypeCasterRegistry implements Contract\TypeCasterRegistry
 	}
 
 	#[Override]
-	/** @return array<string, Contract\TypeCaster> */
-	public function all(): array
+	public function get(string $name): ?Contract\TypeCaster
 	{
-		return $this->casters;
+		if (array_key_exists($name, $this->casters)) {
+			return $this->casters[$name];
+		}
+
+		return $this->fallback?->get($name);
 	}
 }
