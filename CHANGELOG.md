@@ -2,7 +2,16 @@
 
 ## [Unreleased](https://github.com/duoncode/sire/compare/0.3.0...HEAD)
 
-No notable changes since the last release.
+### Breaking
+
+- Made `Shape`, `Validator`, and `Value` final; custom shapes now need composition through `Contract\Shape` instead of subclassing.
+- Removed `Shape` subclass hooks and mutable run-state access, including `rules()`, protected `review()`, `addError()`, `toSubValues()`, `$errorList`, and `$errorMap`.
+- Changed the `in` validator to use strict comparisons, so values must match allowed values without PHP loose coercion.
+
+### Added
+
+- Added `Shape::review()` callbacks with `Review` for post-validation checks after successful normal validation.
+- Added `Rule::prepare()` to normalize present field values before type casting and nested shape validation.
 
 ## [0.3.0](https://github.com/duoncode/sire/releases/tag/0.3.0) (2026-02-21)
 
