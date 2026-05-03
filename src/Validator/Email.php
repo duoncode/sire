@@ -12,8 +12,6 @@ final class Email implements Contract\Validator
 {
 	public string $message = 'Invalid email address';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{

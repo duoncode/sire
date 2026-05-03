@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Coercer;
 
+use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
-use Duon\Sire\Value;
 use Override;
 
 final class Text implements Contract\Coercer
 {
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Contract\Value
+	public function coerce(mixed $pristine, string $label): Contract\Coercion
 	{
 		if (self::isEmptyTextInput($pristine)) {
-			return new Value(null, $pristine);
+			return new Coercion(null, $pristine);
 		}
 
-		return new Value((string) $pristine, $pristine);
+		return new Coercion((string) $pristine, $pristine);
 	}
 
 	private static function isEmptyTextInput(mixed $value): bool

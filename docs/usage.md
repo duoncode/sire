@@ -221,27 +221,24 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `types()` to replace the coercer registry.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validators and coercers should type against `Duon\Sire\Contract\Value`. Return `Duon\Sire\Value` when the default immutable value object is enough.
+Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough.
 
 ```php
 <?php
 
-use Duon\Sire\Contract\Coercer;
-use Duon\Sire\Contract\Validator;
-use Duon\Sire\Contract\Value;
+use Duon\Sire\Coercion;
+use Duon\Sire\Contract;
 use Duon\Sire\Shape;
 use Override;
 
 $shape = new Shape();
 $shape->validator(
     'starts_with',
-    new class implements Validator {
+    new class implements Contract\Validator {
         public string $message = 'Must start with %4$s';
 
-        public bool $skipEmpty = true;
-
         #[Override]
-        public function validate(Value $value, string ...$args): bool
+        public function validate(Contract\Value $value, string ...$args): bool
         {
             return str_starts_with((string) $value->value, $args[0] ?? '');
         }
@@ -250,13 +247,13 @@ $shape->validator(
 
 $shape->type(
     'slug',
-    new class implements Coercer {
+    new class implements Contract\Coercer {
         #[Override]
-        public function coerce(mixed $pristine, string $label): Value
+        public function coerce(mixed $pristine, string $label): Contract\Coercion
         {
             $value = strtolower(trim((string) $pristine));
 
-            return new \Duon\Sire\Value($value, $pristine);
+            return new Coercion($value, $pristine);
         }
     },
 );

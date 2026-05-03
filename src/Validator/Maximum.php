@@ -12,8 +12,6 @@ final class Maximum implements Contract\Validator
 {
 	public string $message = 'Higher than the allowed maximum of %4$s';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{

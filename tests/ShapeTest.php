@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\CoercerRegistry;
+use Duon\Sire\Coercion;
 use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Contract\Validator;
 use Duon\Sire\Contract\ValidatorParser;
@@ -297,13 +298,17 @@ class ShapeTest extends TestCase
 			'slug',
 			new class implements Coercer {
 				#[Override]
-				public function coerce(mixed $pristine, string $label): Value
+				public function coerce(mixed $pristine, string $label): \Duon\Sire\Contract\Coercion
 				{
 					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
-						return new \Duon\Sire\Value($pristine, $pristine, 'Invalid slug');
+						return new Coercion(
+							$pristine,
+							$pristine,
+							'Invalid slug',
+						);
 					}
 
-					return new \Duon\Sire\Value($pristine, $pristine);
+					return new Coercion($pristine, $pristine);
 				}
 			},
 		);
@@ -314,6 +319,29 @@ class ShapeTest extends TestCase
 		$result = $shape->validate(['slug' => 'Not A Slug']);
 		$this->assertFalse($result->isValid());
 		$this->assertSame('Invalid slug', $result->errors()['map']['slug'][0]);
+	}
+
+	public function testCustomCoercerRegistry(): void
+	{
+		$registry = new CoercerRegistry([
+			'upper' => new class implements Coercer {
+				#[Override]
+				public function coerce(mixed $pristine, string $label): \Duon\Sire\Contract\Coercion
+				{
+					$value = is_string($pristine) ? strtoupper($pristine) : $pristine;
+
+					return new Coercion($value, $pristine);
+				}
+			},
+		]);
+
+		$shape = new Shape()->types($registry);
+		$shape->add('field', 'upper');
+
+		$result = $shape->validate(['field' => 'value']);
+		$this->assertTrue($result->isValid());
+		$this->assertSame('VALUE', $result->values()['field']);
+		$this->assertSame('value', $result->pristineValues()['field']);
 	}
 
 	public function testResult(): void
@@ -346,30 +374,6 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->map());
 		$this->assertSame([], $result->values());
 		$this->assertSame([], $result->pristineValues());
-	}
-
-	public function testWrongErrorType(): void
-	{
-		$this->expectException(ValueError::class);
-		$this->expectExceptionMessage('Wrong error type');
-
-		$registry = new CoercerRegistry([
-			'text' => new class implements Coercer {
-				#[Override]
-				public function coerce(mixed $pristine, string $label): Value
-				{
-					return new \Duon\Sire\Value(
-						$pristine,
-						$pristine,
-						['not', 'a', 'string'],
-					);
-				}
-			},
-		]);
-
-		$shape = new Shape()->types($registry);
-		$shape->add('field', 'text');
-		$shape->validate(['field' => 'value']);
 	}
 
 	public function testUnknownData(): void
@@ -923,18 +927,15 @@ class ShapeTest extends TestCase
 		$shape->add('', 'Int', 'int');
 	}
 
-	public function testEmptyArraySkipsValidatorWithSkipEmpty(): void
+	public function testEmptyArraySkipsRegularValidator(): void
 	{
 		$testData = [
 			'items' => [],
 		];
 
 		$shape = new Shape();
-		// Using 'in' validator which has skipEmpty=true
 		$shape->add('items', 'list', 'in:a,b,c');
 
-		// Empty array should skip the 'in' validator (which has skipEmpty=true)
-		// and not produce an error
 		$result = $shape->validate($testData);
 		$this->assertTrue($result->isValid());
 	}
@@ -943,8 +944,6 @@ class ShapeTest extends TestCase
 	{
 		return new class implements Validator {
 			public string $message = 'Must start with %4$s';
-
-			public bool $skipEmpty = true;
 
 			#[Override]
 			public function validate(Value $value, string ...$args): bool

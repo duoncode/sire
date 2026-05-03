@@ -91,8 +91,6 @@ class ValidatorRegistryTest extends TestCase
 		return new class implements Contract\Validator {
 			public string $message = 'Must match';
 
-			public bool $skipEmpty = true;
-
 			#[Override]
 			public function validate(Value $value, string ...$args): bool
 			{

@@ -13,8 +13,6 @@ final class Allowed implements Contract\Validator
 {
 	public string $message = 'Invalid value';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{
