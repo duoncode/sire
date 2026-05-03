@@ -14,6 +14,7 @@ final class Validator
 	public bool $skipNull;
 	private Closure $validator;
 
+	/** @param Closure(Contract\Value, string...): bool $validator */
 	public function __construct(
 		string $name,
 		string $message,
@@ -26,7 +27,7 @@ final class Validator
 		$this->skipNull = $skipNull;
 	}
 
-	public function validate(Value $value, string ...$args): bool
+	public function validate(Contract\Value $value, string ...$args): bool
 	{
 		$func = $this->validator;
 

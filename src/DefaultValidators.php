@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
+use Duon\Sire\Contract\Value;
 use Override;
 
 final class DefaultValidators implements Contract\ValidatorRegistry

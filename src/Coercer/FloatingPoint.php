@@ -16,7 +16,7 @@ final readonly class FloatingPoint implements Contract\Coercer
 	) {}
 
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Value
+	public function coerce(mixed $pristine, string $label): Contract\Value
 	{
 		if (is_float($pristine) || is_null($pristine)) {
 			return new Value($pristine, $pristine);

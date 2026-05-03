@@ -16,7 +16,7 @@ final readonly class Integer implements Contract\Coercer
 	) {}
 
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Value
+	public function coerce(mixed $pristine, string $label): Contract\Value
 	{
 		if (is_int($pristine) || is_null($pristine)) {
 			return new Value($pristine, $pristine);

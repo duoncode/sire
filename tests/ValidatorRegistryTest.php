@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract\ValidatorRegistry as ValidatorRegistryContract;
+use Duon\Sire\Contract\Value;
 use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
-use Duon\Sire\Value;
 use Override;
 use RuntimeException;
 

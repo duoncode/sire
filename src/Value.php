@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire;
 
 /** @api */
-final class Value
+final class Value implements Contract\Value
 {
 	public function __construct(
 		public readonly mixed $value,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
+use Duon\Sire\Contract\Value;
 use ValueError;
 
 /** @internal */
@@ -169,7 +170,7 @@ final class ValidationRun
 				$values[$field] = $valObj;
 			} else {
 				if ($this->shape->keepUnknown) {
-					$values[$field] = new Value($value, $value);
+					$values[$field] = new \Duon\Sire\Value($value, $value);
 				}
 			}
 		}
@@ -203,10 +204,10 @@ final class ValidationRun
 		$result = $shape->validate($pristine, $this->level + 1);
 
 		if ($result->isValid()) {
-			return new Value($result->values(), $pristine);
+			return new \Duon\Sire\Value($result->values(), $pristine);
 		}
 
-		return new Value(
+		return new \Duon\Sire\Value(
 			$pristine,
 			$pristine,
 			[
@@ -245,12 +246,12 @@ final class ValidationRun
 			}
 
 			if ($rule->type() === 'bool') {
-				$values[$field] = new Value(false, null);
+				$values[$field] = new \Duon\Sire\Value(false, null);
 
 				continue;
 			}
 
-			$values[$field] = new Value(null, null);
+			$values[$field] = new \Duon\Sire\Value(null, null);
 		}
 
 		return $values;
