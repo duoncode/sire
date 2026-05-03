@@ -4,13 +4,11 @@ title: Usage
 
 # Usage
 
-This guide covers the day-to-day Sire API, including shape creation,
-validation execution, result handling, nested shapes, and extension points.
+This guide covers the day-to-day Sire API, including shape creation, validation execution, result handling, nested shapes, and extension points.
 
 ## Validate data with a shape
 
-Create a `Shape`, define rules with `add()`, and call `validate()` to get a
-`ValidationResult` object.
+Create a `Shape`, define rules with `add()`, and call `validate()` to get a `ValidationResult` object.
 
 ```php
 <?php
@@ -35,12 +33,10 @@ var_dump($result->values());
 
 ## Use built-in types and validators
 
-Sire supports a small set of built-in types and validators out of the box, so
-you can start without additional configuration.
+Sire supports a small set of built-in types and validators out of the box, so you can start without additional configuration.
 
 - Built-in types: `text`, `int`, `float`, `bool`, `list`
-- Built-in validators: `required`, `email`, `minlen`, `maxlen`, `min`, `max`,
-  `regex`, `in`
+- Built-in validators: `required`, `email`, `minlen`, `maxlen`, `min`, `max`, `regex`, `in`
 
 The validator DSL uses `:` to separate the validator name from arguments.
 
@@ -49,23 +45,59 @@ The validator DSL uses `:` to separate the validator name from arguments.
 - `email:checkdns`
 - `in:active,inactive`
 
+The `in` validator uses strict comparison against the cast value. Prepare or cast input to the expected type before using `in` for non-text values.
+
 ## Use quoted and escaped DSL arguments
 
-You can keep commas and colons inside argument values by quoting or escaping
-them.
+You can keep commas and colons inside argument values by quoting or escaping them.
 
 - Quoted comma values: `in:"ACME, Inc",Globex`
 - Escaped comma values: `in:ACME\, Inc,Globex`
 - Quoted colon values: `starts_with:"http://"`
 - Escaped colon values: `starts_with:http\://`
 
-Sire throws a `ValueError` if a validator definition is malformed, for example
-for unclosed quotes or a missing validator name.
+Sire throws a `ValueError` if a validator definition is malformed, for example for unclosed quotes or a missing validator name.
+
+## Prepare input before validation
+
+Use `Rule::prepare()` when a present field value needs normalization before Sire casts or validates it. Prepare callbacks run in registration order, only for known fields that are present in the input.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape
+    ->add('age', 'int', 'min:18')
+    ->prepare(static fn(mixed $value): mixed => trim((string) $value));
+
+$result = $shape->validate(['age' => ' 21 ']);
+
+var_dump($result->values()['age']); // 21
+```
+
+Prepare callbacks also run before nested shape validation. This is useful when external input needs a small shape adjustment before a nested shape sees it.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$profile = new Shape();
+$profile->add('bio', 'text');
+
+$user = new Shape();
+$user
+    ->add('profile', $profile)
+    ->prepare(static fn(mixed $value): mixed => $value ?? []);
+```
+
+If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the rule type, normal casting or nested validation reports the validation error.
 
 ## Read validation results
 
-The `ValidationResult` object is the primary output of validation. Use it as
-your source of truth in application code.
+The `ValidationResult` object is the primary output of validation. Use it as your source of truth in application code.
 
 - `isValid()` returns `true` when no violations exist.
 - `violations()` returns typed `Violation` objects.
@@ -73,15 +105,44 @@ your source of truth in application code.
 - `errors(grouped: true)` groups errors by shape section.
 - `map()` returns a field-to-messages map.
 - `values()` returns cast values.
-- `pristineValues()` returns original values before casting.
+- `pristineValues()` returns values before casting. If `Rule::prepare()` is used, these are the prepared values, not the original raw input.
 
-`ValidationResult` and `Violation` implement `JsonSerializable`, so you can
-return them directly from JSON APIs.
+`ValidationResult` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
+
+## Review validated values
+
+Use `Shape::review()` for cross-field checks or other post-validation checks. Review callbacks run only after normal validation succeeds. If one review callback adds an error, later review callbacks still run so the result can contain all review errors.
+
+```php
+<?php
+
+use Duon\Sire\ReviewContext;
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('password', 'text', 'required');
+$shape->add('confirm', 'text', 'required')->label('Password confirmation');
+
+$shape->review(static function (ReviewContext $context): void {
+    $values = $context->values();
+
+    if (($values['password'] ?? null) === ($values['confirm'] ?? null)) {
+        return;
+    }
+
+    $context->addError(
+        'confirm',
+        'Password confirmation',
+        'Passwords do not match',
+    );
+});
+```
+
+`ReviewContext` exposes the validated values, pristine values, list flag, shape title, validation level, and `addError()`.
 
 ## Validate nested objects and lists
 
-You can use another shape as a field type to validate nested structures.
-Create a list shape by passing `true` to the constructor.
+You can use another shape as a field type to validate nested structures. Create a list shape by passing `true` to the constructor.
 
 ```php
 <?php
@@ -101,17 +162,47 @@ $users->add('name', 'text', 'required');
 $users->add('address', $address);
 ```
 
+## Compose reusable custom shapes
+
+`Shape` is final. To create reusable custom shapes, implement `Contract\Shape` and delegate to a configured `Shape` instance.
+
+```php
+<?php
+
+use Duon\Sire\Contract\Shape as ShapeContract;
+use Duon\Sire\Shape;
+use Duon\Sire\ValidationResult;
+use Override;
+
+final class LoginShape implements ShapeContract
+{
+    private Shape $shape;
+
+    public function __construct()
+    {
+        $this->shape = new Shape();
+        $this->shape->add('email', 'text', 'required', 'email');
+        $this->shape->add('password', 'text', 'required');
+    }
+
+    #[Override]
+    public function validate(array $data, int $level = 1): ValidationResult
+    {
+        return $this->shape->validate($data, $level);
+    }
+}
+```
+
+Delegating shapes can be used anywhere a nested shape is accepted because Sire rules accept `Contract\Shape`.
+
 ## Extend validators and type casters
 
-You can provide custom registries when you construct a shape. This is useful
-for project-specific rules and casting behavior.
+You can provide custom registries when you construct a shape. This is useful for project-specific rules and casting behavior.
 
 - Use `ValidatorRegistry::withDefaults()->with(...)` to add validators.
 - Use `TypeCasterRegistry::withDefaults($messages)->with(...)` to add casters.
-- Use a custom `ValidatorDefinitionParser` if you need a different DSL split
-  strategy.
+- Use a custom `ValidatorDefinitionParser` if you need a different DSL split strategy.
 
 ## Next steps
 
-Continue with the [development guide](development.md) for local workflows,
-tests, and quality checks.
+Continue with the [development guide](development.md) for local workflows, tests, and quality checks.
