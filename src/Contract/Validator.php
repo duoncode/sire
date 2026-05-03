@@ -9,7 +9,5 @@ interface Validator
 {
 	public string $message { get; }
 
-	public bool $skipEmpty { get; }
-
 	public function validate(Value $value, string ...$args): bool;
 }

@@ -8,11 +8,9 @@ use Duon\Sire\Contract;
 use Override;
 
 /** @api */
-final class Required implements Contract\Validator
+final class Required implements Contract\ValidatesEmpty
 {
 	public string $message = 'Required';
-
-	public bool $skipEmpty = false;
 
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool

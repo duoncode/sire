@@ -12,8 +12,6 @@ final class MinLength implements Contract\Validator
 {
 	public string $message = 'Shorter than the minimum length of %4$s characters';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{

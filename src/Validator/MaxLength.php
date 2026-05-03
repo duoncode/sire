@@ -12,8 +12,6 @@ final class MaxLength implements Contract\Validator
 {
 	public string $message = 'Exeeds the maximum length of %4$s characters';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{

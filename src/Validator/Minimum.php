@@ -12,8 +12,6 @@ final class Minimum implements Contract\Validator
 {
 	public string $message = 'Lower than the required minimum of %4$s';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{

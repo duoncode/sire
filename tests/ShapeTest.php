@@ -926,18 +926,15 @@ class ShapeTest extends TestCase
 		$shape->add('', 'Int', 'int');
 	}
 
-	public function testEmptyArraySkipsValidatorWithSkipEmpty(): void
+	public function testEmptyArraySkipsRegularValidator(): void
 	{
 		$testData = [
 			'items' => [],
 		];
 
 		$shape = new Shape();
-		// Using 'in' validator which has skipEmpty=true
 		$shape->add('items', 'list', 'in:a,b,c');
 
-		// Empty array should skip the 'in' validator (which has skipEmpty=true)
-		// and not produce an error
 		$result = $shape->validate($testData);
 		$this->assertTrue($result->isValid());
 	}
@@ -946,8 +943,6 @@ class ShapeTest extends TestCase
 	{
 		return new class implements Validator {
 			public string $message = 'Must start with %4$s';
-
-			public bool $skipEmpty = true;
 
 			#[Override]
 			public function validate(Value $value, string ...$args): bool

@@ -14,7 +14,7 @@ class ValidatorTest extends TestCase
 		$validator = new Required();
 
 		$this->assertSame('Required', $validator->message);
-		$this->assertFalse($validator->skipEmpty);
+		$this->assertInstanceOf(Contract\ValidatesEmpty::class, $validator);
 	}
 
 	public function testBuiltInValidatorAcceptsValueImplementation(): void

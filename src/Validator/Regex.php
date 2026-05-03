@@ -12,8 +12,6 @@ final class Regex implements Contract\Validator
 {
 	public string $message = 'Does not match the required pattern';
 
-	public bool $skipEmpty = true;
-
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): bool
 	{

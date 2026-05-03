@@ -221,7 +221,7 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `types()` to replace the coercer registry.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validators and coercers should type against `Duon\Sire\Contract\Value`. Coercers return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` with `Duon\Sire\Value` when the default immutable objects are enough.
+Custom validators and coercers should type against `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Coercers return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` with `Duon\Sire\Value` when the default immutable objects are enough.
 
 ```php
 <?php
@@ -237,8 +237,6 @@ $shape->validator(
     'starts_with',
     new class implements Contract\Validator {
         public string $message = 'Must start with %4$s';
-
-        public bool $skipEmpty = true;
 
         #[Override]
         public function validate(Contract\Value $value, string ...$args): bool

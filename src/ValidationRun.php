@@ -77,7 +77,9 @@ final class ValidationRun
 			);
 		}
 
-		if ($validator->skipEmpty && self::isSkippableEmptyValue($value->value)) {
+		if (
+			!$validator instanceof Contract\ValidatesEmpty && self::isSkippableEmptyValue($value->value)
+		) {
 			return;
 		}
 
