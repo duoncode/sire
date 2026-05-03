@@ -72,22 +72,20 @@ class TestCase extends BaseTestCase
 
 	public function getListShape(): Shape
 	{
-		return new class(title: 'List Root', list: true) extends Shape {
-			protected function rules(): void
-			{
-				$this->add('int', 'int', 'required');
-				$this->add('text', 'text', 'required');
-				$this->add('email', 'text', 'email', 'minlen:10');
-				$this->add(
-					'single_shape',
-					new SubShape(title: 'Single Sub'),
-					'required',
-				)->label('Single Shape');
-				$this->add(
-					'list_shape',
-					new SubShape(title: 'List Sub', list: true),
-				);
-			}
-		};
+		$shape = new Shape(title: 'List Root', list: true);
+		$shape->add('int', 'int', 'required');
+		$shape->add('text', 'text', 'required');
+		$shape->add('email', 'text', 'email', 'minlen:10');
+		$shape->add(
+			'single_shape',
+			new SubShape(title: 'Single Sub'),
+			'required',
+		)->label('Single Shape');
+		$shape->add(
+			'list_shape',
+			new SubShape(title: 'List Sub', list: true),
+		);
+
+		return $shape;
 	}
 }

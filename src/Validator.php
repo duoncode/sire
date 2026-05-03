@@ -7,12 +7,12 @@ namespace Duon\Sire;
 use Closure;
 
 /** @api */
-class Validator
+final class Validator
 {
 	public string $name;
 	public string $message;
 	public bool $skipNull;
-	protected Closure $validator;
+	private Closure $validator;
 
 	public function __construct(
 		string $name,

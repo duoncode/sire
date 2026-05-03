@@ -9,45 +9,40 @@ use Override;
 use ValueError;
 
 /** @api */
-class Shape implements Contract\Shape
+final class Shape implements Contract\Shape
 {
 	/** @var array<string, Validator> */
-	protected array $validators = [];
-
-	protected int $level = 0;
+	private array $validators = [];
 
 	/** @var array<string, Rule> */
-	protected array $rules = [];
-
-	protected array $messages = [];
+	private array $rules = [];
 
 	/** @var list<Closure(ReviewContext): void> */
 	private array $reviewCallbacks = [];
 
 	/** @var array<string, Contract\TypeCaster> */
-	protected array $typeCasters = [];
+	private array $typeCasters = [];
 
-	protected Contract\ValidatorRegistry $validatorRegistry;
+	private Contract\ValidatorRegistry $validatorRegistry;
 
-	protected Contract\ValidatorDefinitionParser $validatorDefinitionParser;
+	private Contract\ValidatorDefinitionParser $validatorDefinitionParser;
 
-	protected Contract\TypeCasterRegistry $typeCasterRegistry;
+	private Contract\TypeCasterRegistry $typeCasterRegistry;
 
 	public function __construct(
-		protected bool $list = false,
-		protected bool $keepUnknown = false,
+		private bool $list = false,
+		private bool $keepUnknown = false,
 		array $langs = [],
-		protected ?string $title = null,
+		private ?string $title = null,
 		?Contract\ValidatorRegistry $validatorRegistry = null,
 		?Contract\ValidatorDefinitionParser $validatorDefinitionParser = null,
 		?Contract\TypeCasterRegistry $typeCasterRegistry = null,
 	) {
 		unset($langs);
-		$this->loadMessages();
+		$messages = self::messages();
 		$this->validatorRegistry = $validatorRegistry ?? ValidatorRegistry::withDefaults();
 		$this->validatorDefinitionParser = $validatorDefinitionParser ?? new ValidatorDefinitionParser();
-		$this->typeCasterRegistry =
-			$typeCasterRegistry ?? TypeCasterRegistry::withDefaults($this->messages);
+		$this->typeCasterRegistry = $typeCasterRegistry ?? TypeCasterRegistry::withDefaults($messages);
 		$this->loadDefaultValidators();
 		$this->loadDefaultTypeCasters();
 	}
@@ -83,47 +78,14 @@ class Shape implements Contract\Shape
 	#[Override]
 	public function validate(array $data, int $level = 1): ValidationResult
 	{
-		$this->level = $level;
-		$this->rules();
-
 		return new ValidationRun(
 			$this->definition(),
 			$data,
 			$level,
-			$this->toSubValues(...),
 		)->validate();
 	}
 
-	/**
-	 * This method is called before validation starts.
-	 *
-	 * It can be overwritten to add rules in a reusable shape.
-	 */
-	protected function rules(): void
-	{
-		// Like:
-		// $this->add('field', 'bool, 'required')->label('remember');
-	}
-
-	protected function toSubValues(mixed $pristine, Contract\Shape $shape): Value
-	{
-		$result = $shape->validate($pristine, $this->level + 1);
-
-		if ($result->isValid()) {
-			return new Value($result->values(), $pristine);
-		}
-
-		return new Value(
-			$pristine,
-			$pristine,
-			[
-				'errors' => $result->violations(),
-				'map' => $result->map(),
-			],
-		);
-	}
-
-	protected function loadMessages(): void
+	private static function messages(): array
 	{
 		// You can use the following placeholder to get more
 		// information into your error messages:
@@ -137,7 +99,7 @@ class Shape implements Contract\Shape
 		//
 		//  e. g. 'int' => 'Invalid number "%3$1" in field "%1$s"'
 
-		$this->messages = [
+		return [
 			// Types:
 			'bool' => 'Invalid boolean',
 			'float' => 'Invalid number',
@@ -146,14 +108,14 @@ class Shape implements Contract\Shape
 		];
 	}
 
-	protected function loadDefaultValidators(): void
+	private function loadDefaultValidators(): void
 	{
 		foreach ($this->validatorRegistry->all() as $name => $validator) {
 			$this->validators[$name] = $validator;
 		}
 	}
 
-	protected function loadDefaultTypeCasters(): void
+	private function loadDefaultTypeCasters(): void
 	{
 		foreach ($this->typeCasterRegistry->all() as $name => $caster) {
 			$this->typeCasters[$name] = $caster;
