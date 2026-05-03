@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Duon\Sire\Contract;
 
 /** @api */
-interface Value
+interface Coercion
 {
-	public mixed $value { get; }
+	public Value $value { get; }
 
-	public mixed $pristine { get; }
+	public ?string $error { get; }
 }

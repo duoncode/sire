@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\CoercerRegistry;
+use Duon\Sire\Coercion;
 use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Contract\Validator;
 use Duon\Sire\Contract\ValidatorParser;
@@ -297,13 +297,16 @@ class ShapeTest extends TestCase
 			'slug',
 			new class implements Coercer {
 				#[Override]
-				public function coerce(mixed $pristine, string $label): Value
+				public function coerce(mixed $pristine, string $label): \Duon\Sire\Contract\Coercion
 				{
 					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
-						return new \Duon\Sire\Value($pristine, $pristine, 'Invalid slug');
+						return new Coercion(
+							new \Duon\Sire\Value($pristine, $pristine),
+							'Invalid slug',
+						);
 					}
 
-					return new \Duon\Sire\Value($pristine, $pristine);
+					return new Coercion(new \Duon\Sire\Value($pristine, $pristine));
 				}
 			},
 		);
@@ -346,30 +349,6 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->map());
 		$this->assertSame([], $result->values());
 		$this->assertSame([], $result->pristineValues());
-	}
-
-	public function testWrongErrorType(): void
-	{
-		$this->expectException(ValueError::class);
-		$this->expectExceptionMessage('Wrong error type');
-
-		$registry = new CoercerRegistry([
-			'text' => new class implements Coercer {
-				#[Override]
-				public function coerce(mixed $pristine, string $label): Value
-				{
-					return new \Duon\Sire\Value(
-						$pristine,
-						$pristine,
-						['not', 'a', 'string'],
-					);
-				}
-			},
-		]);
-
-		$shape = new Shape()->types($registry);
-		$shape->add('field', 'text');
-		$shape->validate(['field' => 'value']);
 	}
 
 	public function testUnknownData(): void

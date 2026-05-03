@@ -10,6 +10,5 @@ final class Value implements Contract\Value
 	public function __construct(
 		public readonly mixed $value,
 		public readonly mixed $pristine,
-		public readonly array|string|null $error = null,
 	) {}
 }

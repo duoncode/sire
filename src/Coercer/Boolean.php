@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Coercer;
 
+use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
 use Duon\Sire\Value;
 use Override;
@@ -16,29 +17,28 @@ final readonly class Boolean implements Contract\Coercer
 	) {}
 
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Contract\Value
+	public function coerce(mixed $pristine, string $label): Contract\Coercion
 	{
 		if (is_bool($pristine)) {
-			return new Value($pristine, $pristine);
+			return new Coercion(new Value($pristine, $pristine));
 		}
 
 		if (!$pristine) {
-			return new Value(false, $pristine);
+			return new Coercion(new Value(false, $pristine));
 		}
 
 		$tmp = strtolower((string) $pristine);
 
 		if (in_array($tmp, ['1', 'on', 'true', 'yes'], true)) {
-			return new Value(true, $pristine);
+			return new Coercion(new Value(true, $pristine));
 		}
 
 		if (in_array($tmp, ['0', 'off', 'false', 'no', 'null'], true)) {
-			return new Value(false, $pristine);
+			return new Coercion(new Value(false, $pristine));
 		}
 
-		return new Value(
-			$pristine,
-			$pristine,
+		return new Coercion(
+			new Value($pristine, $pristine),
 			sprintf($this->messages['bool'], $label),
 		);
 	}

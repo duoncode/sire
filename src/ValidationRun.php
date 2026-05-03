@@ -145,29 +145,24 @@ final class ValidationRun
 			$rule = $this->shape->rules[$field] ?? null;
 
 			if ($rule) {
-				$valObj = $this->readKnownValue($rule, $value);
+				$read = $this->readKnownValue($rule, $value);
 
-				if ($valObj->error !== null) {
-					if ($rule->type() === 'shape') {
-						assert(is_array($valObj->error), 'Expected nested shape errors to be arrays');
-						$this->errors->addNested($field, $valObj->error, $listIndex);
-					} else {
-						if (!is_string($valObj->error)) {
-							throw new ValueError('Wrong error type');
-						}
-
-						$this->errors->add(
-							$field,
-							$rule->name(),
-							$valObj->error,
-							$listIndex,
-							$this->shape->title,
-							$this->level,
-						);
-					}
+				if ($read->nestedError !== null) {
+					$this->errors->addNested($field, $read->nestedError, $listIndex);
 				}
 
-				$values[$field] = $valObj;
+				if ($read->error !== null) {
+					$this->errors->add(
+						$field,
+						$rule->name(),
+						$read->error,
+						$listIndex,
+						$this->shape->title,
+						$this->level,
+					);
+				}
+
+				$values[$field] = $read->value;
 			} else {
 				if ($this->shape->keepUnknown) {
 					$values[$field] = new \Duon\Sire\Value($value, $value);
@@ -178,7 +173,7 @@ final class ValidationRun
 		return $values;
 	}
 
-	private function readKnownValue(Rule $rule, mixed $value): Value
+	private function readKnownValue(Rule $rule, mixed $value): ReadValue
 	{
 		$value = $rule->applyPreparation($value);
 		$type = $rule->type();
@@ -196,21 +191,22 @@ final class ValidationRun
 			throw new ValueError('Wrong shape type');
 		}
 
-		return $coercer->coerce($value, $rule->name());
+		$coercion = $coercer->coerce($value, $rule->name());
+
+		return new ReadValue($coercion->value, $coercion->error);
 	}
 
-	private function toSubValues(mixed $pristine, Contract\Shape $shape): Value
+	private function toSubValues(mixed $pristine, Contract\Shape $shape): ReadValue
 	{
 		$result = $shape->validate($pristine, $this->level + 1);
 
 		if ($result->isValid()) {
-			return new \Duon\Sire\Value($result->values(), $pristine);
+			return new ReadValue(new \Duon\Sire\Value($result->values(), $pristine));
 		}
 
-		return new \Duon\Sire\Value(
-			$pristine,
-			$pristine,
-			[
+		return new ReadValue(
+			new \Duon\Sire\Value($pristine, $pristine),
+			nestedError: [
 				'errors' => $result->violations(),
 				'map' => $result->map(),
 			],

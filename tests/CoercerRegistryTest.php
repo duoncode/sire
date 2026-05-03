@@ -6,6 +6,7 @@ namespace Duon\Sire\Tests;
 
 use Closure;
 use Duon\Sire\CoercerRegistry;
+use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
 use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Value;
@@ -98,9 +99,9 @@ class CoercerRegistryTest extends TestCase
 			) {}
 
 			#[Override]
-			public function coerce(mixed $pristine, string $label): Contract\Value
+			public function coerce(mixed $pristine, string $label): Contract\Coercion
 			{
-				return new Value(($this->callback)($pristine), $pristine);
+				return new Coercion(new Value(($this->callback)($pristine), $pristine));
 			}
 		};
 	}
