@@ -17,7 +17,7 @@ final class Shape implements Contract\Shape
 	/** @var array<string, Rule> */
 	private array $rules = [];
 
-	/** @var list<Closure(ReviewContext): void> */
+	/** @var list<Closure(Review): void> */
 	private array $reviewCallbacks = [];
 
 	/** @var array<string, Contract\TypeCaster> */
@@ -67,7 +67,7 @@ final class Shape implements Contract\Shape
 		return $rule;
 	}
 
-	/** @param Closure(ReviewContext): void $callback */
+	/** @param Closure(Review): void $callback */
 	public function review(Closure $callback): self
 	{
 		$this->reviewCallbacks[] = $callback;

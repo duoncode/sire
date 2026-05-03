@@ -13,7 +13,7 @@ final readonly class ShapeDefinition
 	 * @param array<string, Rule> $rules
 	 * @param array<string, Validator> $validators
 	 * @param array<string, Contract\TypeCaster> $typeCasters
-	 * @param list<Closure(ReviewContext): void> $reviewCallbacks
+	 * @param list<Closure(Review): void> $reviewCallbacks
 	 */
 	public function __construct(
 		public bool $list,
