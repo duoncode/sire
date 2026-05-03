@@ -7,5 +7,5 @@ namespace Duon\Sire\Contract;
 /** @api */
 interface Coercer
 {
-	public function coerce(mixed $pristine, string $label): Coercion;
+	public function coerce(mixed $pristine): Coercion;
 }

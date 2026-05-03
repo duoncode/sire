@@ -11,7 +11,7 @@ use Override;
 final class Text implements Contract\Coercer
 {
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Contract\Coercion
+	public function coerce(mixed $pristine): Contract\Coercion
 	{
 		if (self::isEmptyTextInput($pristine)) {
 			return new Coercion(null, $pristine);

@@ -67,6 +67,17 @@ final class Config
 		$this->coercers = [];
 	}
 
+	public function message(string $key, string $message): void
+	{
+		$this->messages[$key] = $message;
+	}
+
+	/** @param array<string, string> $messages */
+	public function messages(array $messages): void
+	{
+		$this->messages = array_replace($this->messages, $messages);
+	}
+
 	public function validatorParser(Contract\ValidatorParser $parser): void
 	{
 		$this->validatorParser = $parser;
@@ -86,6 +97,7 @@ final class Config
 			$this->resolvedValidatorRegistry(),
 			$this->resolvedCoercerRegistry(),
 			$this->resolvedValidatorParser(),
+			$this->messageFormatter(),
 			$reviewCallbacks,
 		);
 	}
@@ -103,21 +115,25 @@ final class Config
 		//     %5$s for the next validator parameter
 		//     %6$s for the next validator and so on
 		//
-		//  e. g. 'int' => 'Invalid number "%3$1" in field "%1$s"'
+		//  e. g. 'type.int' => 'Invalid number "%3$s" in field "%1$s"'
 
 		return [
-			// Types:
-			'bool' => 'Invalid boolean',
-			'float' => 'Invalid number',
-			'int' => 'Invalid number',
-			'list' => 'Invalid list',
+			'type.bool' => 'Invalid boolean',
+			'type.float' => 'Invalid number',
+			'type.int' => 'Invalid number',
+			'type.list' => 'Invalid list',
 		];
 	}
 
 	/** @return array<string, string> */
-	private function messages(): array
+	private function resolvedMessages(): array
 	{
 		return array_replace(self::defaultMessages(), $this->messages);
+	}
+
+	private function messageFormatter(): MessageFormatter
+	{
+		return new MessageFormatter($this->resolvedMessages());
 	}
 
 	private function resolvedValidatorRegistry(): Contract\ValidatorRegistry
@@ -133,7 +149,7 @@ final class Config
 
 	private function resolvedCoercerRegistry(): Contract\CoercerRegistry
 	{
-		$this->coercerRegistry ??= CoercerRegistry::withDefaults($this->messages());
+		$this->coercerRegistry ??= CoercerRegistry::withDefaults();
 
 		if ($this->coercers === []) {
 			return $this->coercerRegistry;

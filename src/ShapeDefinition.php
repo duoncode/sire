@@ -21,6 +21,7 @@ final readonly class ShapeDefinition
 		public Contract\ValidatorRegistry $validators,
 		public Contract\CoercerRegistry $coercers,
 		public Contract\ValidatorParser $validatorParser,
+		public MessageFormatter $messageFormatter,
 		public array $reviewCallbacks,
 	) {}
 }

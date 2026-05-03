@@ -193,11 +193,26 @@ final class ValidationRun
 			throw new ValueError('Wrong shape type');
 		}
 
-		$coercion = $coercer->coerce($value, $rule->name());
+		$coercion = $coercer->coerce($value);
+		$error = $this->formatCoercionFailure($coercion, $rule);
 
 		return new ReadValue(
 			new \Duon\Sire\Value($coercion->value, $coercion->pristine),
-			$coercion->error,
+			$error,
+		);
+	}
+
+	private function formatCoercionFailure(Contract\Coercion $coercion, Rule $rule): ?string
+	{
+		if ($coercion->failure === null) {
+			return null;
+		}
+
+		return $this->shape->messageFormatter->format(
+			$coercion->failure,
+			$rule->name(),
+			$rule->field,
+			$coercion->pristine,
 		);
 	}
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Contract;
 
+use Duon\Sire\Failure;
+
 /** @api */
 interface Coercion
 {
@@ -11,5 +13,5 @@ interface Coercion
 
 	public mixed $pristine { get; }
 
-	public ?string $error { get; }
+	public ?Failure $failure { get; }
 }

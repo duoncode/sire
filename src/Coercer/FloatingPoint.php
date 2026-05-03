@@ -6,17 +6,13 @@ namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
+use Duon\Sire\Failure;
 use Override;
 
 final readonly class FloatingPoint implements Contract\Coercer
 {
-	/** @param array<string, string> $messages */
-	public function __construct(
-		private array $messages,
-	) {}
-
 	#[Override]
-	public function coerce(mixed $pristine, string $label): Contract\Coercion
+	public function coerce(mixed $pristine): Contract\Coercion
 	{
 		if (is_float($pristine) || is_null($pristine)) {
 			return new Coercion($pristine, $pristine);
@@ -35,7 +31,7 @@ final readonly class FloatingPoint implements Contract\Coercer
 		return new Coercion(
 			$pristine,
 			$pristine,
-			sprintf($this->messages['float'], $label),
+			new Failure('type.float'),
 		);
 	}
 }

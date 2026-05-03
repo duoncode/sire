@@ -125,6 +125,34 @@ The `Result` object is the primary output of validation. Use it as your source o
 
 `Result` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
 
+## Customize type messages
+
+Use `message()` or `messages()` to override type coercion errors for a shape. Built-in type failure keys are `type.int`, `type.float`, `type.bool`, and `type.list`. Custom coercers should use `type.<name>` keys for their own failures.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = (new Shape())
+    ->message('type.int', '%1$s must be a whole number')
+    ->messages([
+        'type.bool' => '%1$s must be yes or no',
+    ]);
+
+$shape->add('age', 'int')->label('Age');
+$shape->add('enabled', 'bool')->label('Enabled');
+```
+
+Message templates use `sprintf()` placeholders:
+
+- `%1$s` is the rule label, or the field name when no label is set.
+- `%2$s` is the field name.
+- `%3$s` is the pristine value that reached coercion.
+- `%4$s`, `%5$s`, and later values come from custom `Failure` arguments.
+
+Validator messages still come from each validator's `message` property.
+
 ## Review validated values
 
 Use `Shape::review()` for cross-field checks or other post-validation checks. Review callbacks run only after normal validation succeeds. If one review callback adds an error, later review callbacks still run so the result can contain all review errors.
@@ -219,15 +247,18 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `validators()` to replace the validator registry.
 - Use `type()` to add or replace one base type with its coercer.
 - Use `types()` to replace the coercer registry.
+- Use `message()` to override one type failure message.
+- Use `messages()` to override many type failure messages.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough.
+Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Return a `Duon\Sire\Failure` when a coercer cannot produce a valid value.
 
 ```php
 <?php
 
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
+use Duon\Sire\Failure;
 use Duon\Sire\Shape;
 use Override;
 
@@ -245,18 +276,28 @@ $shape->validator(
     },
 );
 
-$shape->type(
-    'slug',
-    new class implements Contract\Coercer {
-        #[Override]
-        public function coerce(mixed $pristine, string $label): Contract\Coercion
-        {
-            $value = strtolower(trim((string) $pristine));
+$shape
+    ->message('type.slug', '%1$s must contain only letters, numbers, and dashes')
+    ->type(
+        'slug',
+        new class implements Contract\Coercer {
+            #[Override]
+            public function coerce(mixed $pristine): Contract\Coercion
+            {
+                $value = strtolower(trim((string) $pristine));
 
-            return new Coercion($value, $pristine);
-        }
-    },
-);
+                if ($value === '' || !preg_match('/^[a-z0-9-]+$/', $value)) {
+                    return new Coercion(
+                        $pristine,
+                        $pristine,
+                        new Failure('type.slug', fallback: 'Invalid slug'),
+                    );
+                }
+
+                return new Coercion($value, $pristine);
+            }
+        },
+    );
 ```
 
 ## Next steps

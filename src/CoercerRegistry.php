@@ -15,9 +15,9 @@ final class CoercerRegistry implements Contract\CoercerRegistry
 		private ?Contract\CoercerRegistry $fallback = null,
 	) {}
 
-	public static function withDefaults(array $messages): self
+	public static function withDefaults(): self
 	{
-		return new self([], new DefaultCoercers($messages));
+		return new self([], new DefaultCoercers());
 	}
 
 	public function with(string $name, Contract\Coercer $coercer): self

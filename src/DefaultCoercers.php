@@ -11,11 +11,6 @@ final class DefaultCoercers implements Contract\CoercerRegistry
 	/** @var array<string, Contract\Coercer> */
 	private array $loaded = [];
 
-	/** @param array<string, string> $messages */
-	public function __construct(
-		private readonly array $messages,
-	) {}
-
 	#[Override]
 	public function get(string $name): ?Contract\Coercer
 	{
@@ -25,10 +20,10 @@ final class DefaultCoercers implements Contract\CoercerRegistry
 
 		$coercer = match ($name) {
 			'text' => new Coercer\Text(),
-			'bool' => new Coercer\Boolean($this->messages),
-			'list' => new Coercer\Sequence($this->messages),
-			'float' => new Coercer\FloatingPoint($this->messages),
-			'int' => new Coercer\Integer($this->messages),
+			'bool' => new Coercer\Boolean(),
+			'list' => new Coercer\Sequence(),
+			'float' => new Coercer\FloatingPoint(),
+			'int' => new Coercer\Integer(),
 			default => null,
 		};
 

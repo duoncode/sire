@@ -30,7 +30,7 @@ class CoercerRegistryTest extends TestCase
 
 	public function testWithDefaultsHasBuiltInCoercers(): void
 	{
-		$registry = CoercerRegistry::withDefaults(self::messages());
+		$registry = CoercerRegistry::withDefaults();
 
 		$this->assertInstanceOf(Coercer::class, $registry->get('text'));
 		$this->assertInstanceOf(Coercer::class, $registry->get('bool'));
@@ -41,14 +41,14 @@ class CoercerRegistryTest extends TestCase
 
 	public function testWithDefaultsMemoizesBuiltInCoercers(): void
 	{
-		$registry = CoercerRegistry::withDefaults(self::messages());
+		$registry = CoercerRegistry::withDefaults();
 
 		$this->assertSame($registry->get('text'), $registry->get('text'));
 	}
 
 	public function testWithDefaultsReturnsNullForUnknownCoercers(): void
 	{
-		$registry = CoercerRegistry::withDefaults(self::messages());
+		$registry = CoercerRegistry::withDefaults();
 
 		$this->assertNull($registry->get('unknown'));
 	}
@@ -56,7 +56,7 @@ class CoercerRegistryTest extends TestCase
 	public function testCustomCoercerShadowsDefaults(): void
 	{
 		$coercer = self::coercer(static fn(mixed $pristine): string => (string) $pristine);
-		$registry = CoercerRegistry::withDefaults(self::messages())->with('text', $coercer);
+		$registry = CoercerRegistry::withDefaults()->with('text', $coercer);
 
 		$this->assertSame($coercer, $registry->get('text'));
 	}
@@ -77,17 +77,6 @@ class CoercerRegistryTest extends TestCase
 		$this->assertSame($coercer, $registry->get('text'));
 	}
 
-	/** @return array<string, string> */
-	private static function messages(): array
-	{
-		return [
-			'bool' => 'Invalid boolean',
-			'float' => 'Invalid number',
-			'int' => 'Invalid number',
-			'list' => 'Invalid list',
-		];
-	}
-
 	/** @param Closure(mixed): mixed $callback */
 	private static function coercer(Closure $callback): Coercer
 	{
@@ -98,7 +87,7 @@ class CoercerRegistryTest extends TestCase
 			) {}
 
 			#[Override]
-			public function coerce(mixed $pristine, string $label): Contract\Coercion
+			public function coerce(mixed $pristine): Contract\Coercion
 			{
 				return new Coercion(($this->callback)($pristine), $pristine);
 			}
