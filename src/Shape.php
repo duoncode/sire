@@ -11,8 +11,7 @@ use ValueError;
 /** @api */
 final class Shape implements Contract\Shape
 {
-	/** @var null|array<string, Validator> */
-	private ?array $validators = null;
+	private Config $config;
 
 	/** @var array<string, Rule> */
 	private array $rules = [];
@@ -20,18 +19,10 @@ final class Shape implements Contract\Shape
 	/** @var list<Closure(Review): void> */
 	private array $reviewCallbacks = [];
 
-	/** @var null|array<string, Contract\TypeCaster> */
-	private ?array $typeCasters = null;
-
-	private bool $list = false;
-
-	private bool $keepUnknown = false;
-
-	private ?string $title = null;
-
-	private ?Contract\ValidatorParser $validatorParser = null;
-
-	public function __construct() {}
+	public function __construct()
+	{
+		$this->config = new Config();
+	}
 
 	public static function list(): self
 	{
@@ -40,60 +31,56 @@ final class Shape implements Contract\Shape
 
 	public function asList(bool $list = true): self
 	{
-		$this->list = $list;
+		$this->config->asList($list);
 
 		return $this;
 	}
 
 	public function keepUnknown(bool $keep = true): self
 	{
-		$this->keepUnknown = $keep;
+		$this->config->keepUnknown($keep);
 
 		return $this;
 	}
 
 	public function title(?string $title): self
 	{
-		$this->title = $title;
+		$this->config->title($title);
 
 		return $this;
 	}
 
 	public function validator(string $name, Validator $validator): self
 	{
-		$validators = $this->loadedValidators();
-		$validators[$name] = $validator;
-		$this->validators = $validators;
+		$this->config->validator($name, $validator);
 
 		return $this;
 	}
 
 	public function validators(Contract\ValidatorRegistry $registry): self
 	{
-		$this->validators = $registry->all();
+		$this->config->validators($registry);
 
 		return $this;
 	}
 
 	public function type(string $name, Contract\TypeCaster $caster): self
 	{
-		$typeCasters = $this->loadedTypeCasters();
-		$typeCasters[$name] = $caster;
-		$this->typeCasters = $typeCasters;
+		$this->config->type($name, $caster);
 
 		return $this;
 	}
 
 	public function types(Contract\TypeCasterRegistry $registry): self
 	{
-		$this->typeCasters = $registry->all();
+		$this->config->types($registry);
 
 		return $this;
 	}
 
 	public function validatorParser(Contract\ValidatorParser $parser): self
 	{
-		$this->validatorParser = $parser;
+		$this->config->validatorParser($parser);
 
 		return $this;
 	}
@@ -136,57 +123,8 @@ final class Shape implements Contract\Shape
 		)->validate();
 	}
 
-	private static function messages(): array
-	{
-		// You can use the following placeholder to get more
-		// information into your error messages:
-		//
-		//     %1$s for the field label if set, otherwise the field name
-		//     %2$s for the field name
-		//     %3$s for the original value
-		//     %4$s for the first validator parameter
-		//     %5$s for the next validator parameter
-		//     %6$s for the next validator and so on
-		//
-		//  e. g. 'int' => 'Invalid number "%3$1" in field "%1$s"'
-
-		return [
-			// Types:
-			'bool' => 'Invalid boolean',
-			'float' => 'Invalid number',
-			'int' => 'Invalid number',
-			'list' => 'Invalid list',
-		];
-	}
-
-	/** @return array<string, Validator> */
-	private function loadedValidators(): array
-	{
-		return $this->validators ??= ValidatorRegistry::withDefaults()->all();
-	}
-
-	/** @return array<string, Contract\TypeCaster> */
-	private function loadedTypeCasters(): array
-	{
-		return $this->typeCasters ??= TypeCasterRegistry::withDefaults(self::messages())->all();
-	}
-
-	private function loadedValidatorParser(): Contract\ValidatorParser
-	{
-		return $this->validatorParser ??= new ValidatorParser();
-	}
-
 	private function definition(): ShapeDefinition
 	{
-		return new ShapeDefinition(
-			$this->list,
-			$this->keepUnknown,
-			$this->title,
-			$this->rules,
-			$this->loadedValidators(),
-			$this->loadedTypeCasters(),
-			$this->loadedValidatorParser(),
-			$this->reviewCallbacks,
-		);
+		return $this->config->definition($this->rules, $this->reviewCallbacks);
 	}
 }
