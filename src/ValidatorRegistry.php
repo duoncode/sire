@@ -17,7 +17,7 @@ final class ValidatorRegistry implements Contract\ValidatorRegistry
 
 	public static function withDefaults(): self
 	{
-		return new self(DefaultValidators::all());
+		return new self([], new DefaultValidators());
 	}
 
 	public function with(string $name, Validator $validator): self

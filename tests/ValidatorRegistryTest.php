@@ -35,6 +35,42 @@ class ValidatorRegistryTest extends TestCase
 		$this->assertSame($registry->get('required'), $updatedRegistry->get('required'));
 	}
 
+	public function testWithDefaultsFindsBuiltInValidators(): void
+	{
+		$registry = ValidatorRegistry::withDefaults();
+
+		$this->assertInstanceOf(Validator::class, $registry->get('required'));
+		$this->assertInstanceOf(Validator::class, $registry->get('email'));
+		$this->assertInstanceOf(Validator::class, $registry->get('minlen'));
+		$this->assertInstanceOf(Validator::class, $registry->get('maxlen'));
+		$this->assertInstanceOf(Validator::class, $registry->get('min'));
+		$this->assertInstanceOf(Validator::class, $registry->get('max'));
+		$this->assertInstanceOf(Validator::class, $registry->get('regex'));
+		$this->assertInstanceOf(Validator::class, $registry->get('in'));
+	}
+
+	public function testWithDefaultsMemoizesBuiltInValidators(): void
+	{
+		$registry = ValidatorRegistry::withDefaults();
+
+		$this->assertSame($registry->get('required'), $registry->get('required'));
+	}
+
+	public function testWithDefaultsReturnsNullForUnknownValidators(): void
+	{
+		$registry = ValidatorRegistry::withDefaults();
+
+		$this->assertNull($registry->get('unknown'));
+	}
+
+	public function testCustomValidatorShadowsDefaults(): void
+	{
+		$validator = self::stringValidator('required');
+		$registry = ValidatorRegistry::withDefaults()->with('required', $validator);
+
+		$this->assertSame($validator, $registry->get('required'));
+	}
+
 	public function testLocalValidatorShadowsFallback(): void
 	{
 		$fallback = new class implements ValidatorRegistryContract {
