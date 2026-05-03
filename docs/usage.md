@@ -31,6 +31,22 @@ if (!$result->isValid()) {
 var_dump($result->values());
 ```
 
+## Configure shape behavior
+
+`new Shape()` creates an object shape. Configure shape metadata and behavior with fluent methods.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = Shape::list()
+    ->title('Users')
+    ->keepUnknown();
+```
+
+Use `asList(false)` to switch a configured list shape back to object mode.
+
 ## Use built-in types and validators
 
 Sire supports a small set of built-in types and validators out of the box, so you can start without additional configuration.
@@ -138,12 +154,11 @@ $shape->review(static function (Review $review): void {
 });
 ```
 
-`Review` exposes the validated values, pristine values, list flag, shape title,
-validation level, and `addError()`.
+`Review` exposes the validated values, pristine values, list flag, shape title, validation level, and `addError()`.
 
 ## Validate nested objects and lists
 
-You can use another shape as a field type to validate nested structures. Create a list shape by passing `true` to the constructor.
+You can use another shape as a field type to validate nested structures. Create a list shape with `Shape::list()`.
 
 ```php
 <?php
@@ -158,7 +173,7 @@ $user = new Shape();
 $user->add('name', 'text', 'required');
 $user->add('address', $address);
 
-$users = new Shape(true);
+$users = Shape::list();
 $users->add('name', 'text', 'required');
 $users->add('address', $address);
 ```
@@ -198,11 +213,13 @@ Delegating shapes can be used anywhere a nested shape is accepted because Sire r
 
 ## Extend validators and type casters
 
-You can provide custom registries when you construct a shape. This is useful for project-specific rules and casting behavior.
+Configure a shape fluently when you need project-specific rules, casting behavior, or DSL parsing.
 
-- Use `ValidatorRegistry::withDefaults()->with(...)` to add validators.
-- Use `TypeCasterRegistry::withDefaults($messages)->with(...)` to add casters.
-- Use a custom `ValidatorParser` if you need a different DSL split strategy.
+- Use `validator()` to add or replace one validator.
+- Use `validators()` to replace the validator registry.
+- Use `type()` to add or replace one type caster.
+- Use `types()` to replace the type caster registry.
+- Use `validatorParser()` if you need a different DSL split strategy.
 
 ## Next steps
 
