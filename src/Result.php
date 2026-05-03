@@ -8,7 +8,7 @@ use JsonSerializable;
 use Override;
 
 /** @api */
-final class ValidationResult implements JsonSerializable
+final class Result implements JsonSerializable
 {
 	/**
 	 * @param list<Violation> $violations

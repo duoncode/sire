@@ -8,7 +8,7 @@ This guide covers the day-to-day Sire API, including shape creation, validation 
 
 ## Validate data with a shape
 
-Create a `Shape`, define rules with `add()`, and call `validate()` to get a `ValidationResult` object.
+Create a `Shape`, define rules with `add()`, and call `validate()` to get a `Result` object.
 
 ```php
 <?php
@@ -97,7 +97,7 @@ If a prepare callback throws, the exception is not caught by Sire. If it returns
 
 ## Read validation results
 
-The `ValidationResult` object is the primary output of validation. Use it as your source of truth in application code.
+The `Result` object is the primary output of validation. Use it as your source of truth in application code.
 
 - `isValid()` returns `true` when no violations exist.
 - `violations()` returns typed `Violation` objects.
@@ -107,7 +107,7 @@ The `ValidationResult` object is the primary output of validation. Use it as you
 - `values()` returns cast values.
 - `pristineValues()` returns values before casting. If `Rule::prepare()` is used, these are the prepared values, not the original raw input.
 
-`ValidationResult` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
+`Result` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
 
 ## Review validated values
 
@@ -172,7 +172,7 @@ $users->add('address', $address);
 
 use Duon\Sire\Contract\Shape as ShapeContract;
 use Duon\Sire\Shape;
-use Duon\Sire\ValidationResult;
+use Duon\Sire\Result;
 use Override;
 
 final class LoginShape implements ShapeContract
@@ -187,7 +187,7 @@ final class LoginShape implements ShapeContract
     }
 
     #[Override]
-    public function validate(array $data, int $level = 1): ValidationResult
+    public function validate(array $data, int $level = 1): Result
     {
         return $this->shape->validate($data, $level);
     }

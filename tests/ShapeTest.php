@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract\ValidatorDefinitionParser as ValidatorDefinitionParserContract;
+use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
 use Duon\Sire\TypeCaster;
 use Duon\Sire\TypeCasterRegistry;
-use Duon\Sire\ValidationResult;
 use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
 use Duon\Sire\Value;
@@ -338,13 +338,13 @@ class ShapeTest extends TestCase
 		$this->assertSame('Invalid slug', $result->errors()['map']['slug'][0]);
 	}
 
-	public function testValidationResult(): void
+	public function testResult(): void
 	{
 		$shape = new Shape();
 		$shape->add('email', 'text', 'required', 'email');
 
 		$result = $shape->validate(['email' => 'invalid']);
-		$this->assertInstanceOf(ValidationResult::class, $result);
+		$this->assertInstanceOf(Result::class, $result);
 		$this->assertFalse($result->isValid());
 		$this->assertSame('Invalid email address', $result->map()['email'][0]);
 

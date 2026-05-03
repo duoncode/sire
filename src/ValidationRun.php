@@ -19,7 +19,7 @@ final class ValidationRun
 		$this->errors = new ErrorBag();
 	}
 
-	public function validate(): ValidationResult
+	public function validate(): Result
 	{
 		$values = $this->readValues($this->data);
 		$validatedValues = [];
@@ -43,7 +43,7 @@ final class ValidationRun
 			$this->review($extractedValues, $pristineValues);
 		}
 
-		return new ValidationResult(
+		return new Result(
 			$this->shape->list,
 			$this->shape->title,
 			$this->errors->map(),

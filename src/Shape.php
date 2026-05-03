@@ -76,7 +76,7 @@ final class Shape implements Contract\Shape
 	}
 
 	#[Override]
-	public function validate(array $data, int $level = 1): ValidationResult
+	public function validate(array $data, int $level = 1): Result
 	{
 		return new ValidationRun(
 			$this->definition(),

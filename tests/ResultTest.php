@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
-use Duon\Sire\ValidationResult;
+use Duon\Sire\Result;
 use Duon\Sire\Violation;
 
-class ValidationResultTest extends TestCase
+class ResultTest extends TestCase
 {
 	public function testViolationFromArray(): void
 	{
@@ -39,9 +39,9 @@ class ValidationResultTest extends TestCase
 		);
 	}
 
-	public function testValidationResultErrors(): void
+	public function testResultErrors(): void
 	{
-		$result = new ValidationResult(
+		$result = new Result(
 			false,
 			'Main',
 			['email' => ['Invalid value']],
@@ -70,9 +70,9 @@ class ValidationResultTest extends TestCase
 		$this->assertNull($grouped['errors'][1]['title']);
 	}
 
-	public function testValidationResultValid(): void
+	public function testResultValid(): void
 	{
-		$result = new ValidationResult(false, null, [], [], [], []);
+		$result = new Result(false, null, [], [], [], []);
 
 		$this->assertTrue($result->isValid());
 		$this->assertCount(0, $result->violations());
@@ -80,9 +80,9 @@ class ValidationResultTest extends TestCase
 		$this->assertCount(0, $result->errors()['errors']);
 	}
 
-	public function testValidationResultJsonSerializable(): void
+	public function testResultJsonSerializable(): void
 	{
-		$result = new ValidationResult(
+		$result = new Result(
 			false,
 			'Main',
 			['email' => ['Invalid value']],

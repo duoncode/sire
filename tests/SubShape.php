@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract\Shape as ShapeContract;
+use Duon\Sire\Result;
 use Duon\Sire\Shape;
-use Duon\Sire\ValidationResult;
 use Override;
 
 final class SubShape implements ShapeContract
@@ -21,7 +21,7 @@ final class SubShape implements ShapeContract
 	}
 
 	#[Override]
-	public function validate(array $data, int $level = 1): ValidationResult
+	public function validate(array $data, int $level = 1): Result
 	{
 		return $this->shape->validate($data, $level);
 	}

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Contract;
 
-use Duon\Sire\ValidationResult;
+use Duon\Sire\Result;
 
 /** @api */
 interface Shape
 {
-	public function validate(array $data, int $level = 1): ValidationResult;
+	public function validate(array $data, int $level = 1): Result;
 }
