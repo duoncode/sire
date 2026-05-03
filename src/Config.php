@@ -97,6 +97,7 @@ final class Config
 			$this->resolvedValidatorRegistry(),
 			$this->resolvedCoercerRegistry(),
 			$this->resolvedValidatorParser(),
+			$this->messageFormatter(),
 			$reviewCallbacks,
 		);
 	}
@@ -114,16 +115,9 @@ final class Config
 		//     %5$s for the next validator parameter
 		//     %6$s for the next validator and so on
 		//
-		//  e. g. 'int' => 'Invalid number "%3$1" in field "%1$s"'
+		//  e. g. 'type.int' => 'Invalid number "%3$s" in field "%1$s"'
 
 		return [
-			// Legacy type keys:
-			'bool' => 'Invalid boolean',
-			'float' => 'Invalid number',
-			'int' => 'Invalid number',
-			'list' => 'Invalid list',
-
-			// Type keys:
 			'type.bool' => 'Invalid boolean',
 			'type.float' => 'Invalid number',
 			'type.int' => 'Invalid number',
@@ -135,6 +129,11 @@ final class Config
 	private function resolvedMessages(): array
 	{
 		return array_replace(self::defaultMessages(), $this->messages);
+	}
+
+	private function messageFormatter(): MessageFormatter
+	{
+		return new MessageFormatter($this->resolvedMessages());
 	}
 
 	private function resolvedValidatorRegistry(): Contract\ValidatorRegistry
@@ -150,7 +149,7 @@ final class Config
 
 	private function resolvedCoercerRegistry(): Contract\CoercerRegistry
 	{
-		$this->coercerRegistry ??= CoercerRegistry::withDefaults($this->resolvedMessages());
+		$this->coercerRegistry ??= CoercerRegistry::withDefaults();
 
 		if ($this->coercers === []) {
 			return $this->coercerRegistry;

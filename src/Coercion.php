@@ -10,6 +10,6 @@ final readonly class Coercion implements Contract\Coercion
 	public function __construct(
 		public mixed $value,
 		public mixed $pristine,
-		public ?string $error = null,
+		public ?Failure $failure = null,
 	) {}
 }

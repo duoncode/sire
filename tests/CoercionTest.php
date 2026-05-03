@@ -5,22 +5,24 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Coercion;
+use Duon\Sire\Failure;
 
 class CoercionTest extends TestCase
 {
 	public function testProperties(): void
 	{
-		$coercion = new Coercion('coerced', 'raw', 'Invalid');
+		$failure = new Failure('type.custom');
+		$coercion = new Coercion('coerced', 'raw', $failure);
 
 		$this->assertSame('coerced', $coercion->value);
 		$this->assertSame('raw', $coercion->pristine);
-		$this->assertSame('Invalid', $coercion->error);
+		$this->assertSame($failure, $coercion->failure);
 	}
 
-	public function testErrorDefaultsToNull(): void
+	public function testFailureDefaultsToNull(): void
 	{
 		$coercion = new Coercion('coerced', 'raw');
 
-		$this->assertNull($coercion->error);
+		$this->assertNull($coercion->failure);
 	}
 }

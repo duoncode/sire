@@ -10,6 +10,7 @@ use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Contract\Validator;
 use Duon\Sire\Contract\ValidatorParser;
 use Duon\Sire\Contract\Value;
+use Duon\Sire\Failure;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
@@ -57,6 +58,33 @@ class ShapeTest extends TestCase
 		$pristine = $result->pristineValues();
 		$this->assertSame('13', $pristine['valid_int_1']);
 		$this->assertSame(13, $pristine['valid_int_2']);
+	}
+
+	public function testCustomTypeMessage(): void
+	{
+		$shape = new Shape()->message(
+			'type.int',
+			'%1$s (%2$s) must be numeric, got %3$s',
+		);
+		$shape->add('age', 'int')->label('Age');
+
+		$result = $shape->validate(['age' => 'old']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Age (age) must be numeric, got old', $result->map()['age'][0]);
+	}
+
+	public function testCustomTypeMessages(): void
+	{
+		$shape = new Shape()->messages([
+			'type.bool' => '%1$s must be yes or no',
+		]);
+		$shape->add('enabled', 'bool')->label('Enabled');
+
+		$result = $shape->validate(['enabled' => 'maybe']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Enabled must be yes or no', $result->map()['enabled'][0]);
 	}
 
 	public function testTypeFloat(): void
@@ -304,7 +332,7 @@ class ShapeTest extends TestCase
 						return new Coercion(
 							$pristine,
 							$pristine,
-							'Invalid slug',
+							Failure::message('Invalid slug'),
 						);
 					}
 

@@ -6,15 +6,11 @@ namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
+use Duon\Sire\Failure;
 use Override;
 
 final readonly class Boolean implements Contract\Coercer
 {
-	/** @param array<string, string> $messages */
-	public function __construct(
-		private array $messages,
-	) {}
-
 	#[Override]
 	public function coerce(mixed $pristine, string $label): Contract\Coercion
 	{
@@ -39,7 +35,7 @@ final readonly class Boolean implements Contract\Coercer
 		return new Coercion(
 			$pristine,
 			$pristine,
-			sprintf($this->messages['bool'], $label),
+			new Failure('type.bool'),
 		);
 	}
 }
