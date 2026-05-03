@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
+use Closure;
 use Duon\Sire\Contract\TypeCaster as TypeCasterContract;
 use Duon\Sire\Contract\TypeCasterRegistry as TypeCasterRegistryContract;
-use Duon\Sire\TypeCaster;
 use Duon\Sire\TypeCasterRegistry;
 use Duon\Sire\Value;
 use Override;
@@ -88,11 +88,20 @@ class TypeCasterRegistryTest extends TestCase
 		];
 	}
 
-	/** @param callable(mixed): mixed $callback */
-	private static function caster(callable $callback): TypeCaster
+	/** @param Closure(mixed): mixed $callback */
+	private static function caster(Closure $callback): TypeCasterContract
 	{
-		return new TypeCaster(
-			static fn(mixed $pristine, string $_label): Value => new Value($callback($pristine), $pristine),
-		);
+		return new class($callback) implements TypeCasterContract {
+			/** @param Closure(mixed): mixed $callback */
+			public function __construct(
+				private readonly Closure $callback,
+			) {}
+
+			#[Override]
+			public function cast(mixed $pristine, string $label): Value
+			{
+				return new Value(($this->callback)($pristine), $pristine);
+			}
+		};
 	}
 }
