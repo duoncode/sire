@@ -947,13 +947,8 @@ class ShapeTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('must not be empty');
 
-		$shape = new class(langs: ['de', 'en']) extends Shape {
-			protected function rules(): void
-			{
-				$this->add('', 'Int', 'int');
-			}
-		};
-		$shape->validate([]);
+		$shape = new Shape(langs: ['de', 'en']);
+		$shape->add('', 'Int', 'int');
 	}
 
 	public function testEmptyArraySkipsValidatorWithSkipNull(): void

@@ -4,13 +4,25 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
+use Duon\Sire\Contract\Shape as ShapeContract;
 use Duon\Sire\Shape;
+use Duon\Sire\ValidationResult;
+use Override;
 
-class SubShape extends Shape
+final class SubShape implements ShapeContract
 {
-	public function rules(): void
+	private Shape $shape;
+
+	public function __construct(bool $list = false, ?string $title = null)
 	{
-		$this->add('inner_int', 'int', 'required')->label('Int');
-		$this->add('inner_email', 'text', 'required', 'email')->label('Email');
+		$this->shape = new Shape(list: $list, title: $title);
+		$this->shape->add('inner_int', 'int', 'required')->label('Int');
+		$this->shape->add('inner_email', 'text', 'required', 'email')->label('Email');
+	}
+
+	#[Override]
+	public function validate(array $data, int $level = 1): ValidationResult
+	{
+		return $this->shape->validate($data, $level);
 	}
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
-use Closure;
 use ValueError;
 
 /** @internal */
@@ -12,18 +11,12 @@ final class ValidationRun
 {
 	private ErrorBag $errors;
 
-	/** @var Closure(mixed, Contract\Shape): Value */
-	private Closure $subShapeCaster;
-
-	/** @param Closure(mixed, Contract\Shape): Value $subShapeCaster */
 	public function __construct(
 		private readonly ShapeDefinition $shape,
 		private readonly array $data,
 		private readonly int $level,
-		Closure $subShapeCaster,
 	) {
 		$this->errors = new ErrorBag();
-		$this->subShapeCaster = $subShapeCaster;
 	}
 
 	public function validate(): ValidationResult
@@ -193,7 +186,7 @@ final class ValidationRun
 			$shape = $rule->type;
 			assert($shape instanceof Contract\Shape, 'Expected shape rule type to be a shape instance');
 
-			return ($this->subShapeCaster)($value, $shape);
+			return $this->toSubValues($value, $shape);
 		}
 
 		$caster = $this->shape->typeCasters[$type] ?? null;
@@ -203,6 +196,24 @@ final class ValidationRun
 		}
 
 		return $caster->cast($value, $rule->name());
+	}
+
+	private function toSubValues(mixed $pristine, Contract\Shape $shape): Value
+	{
+		$result = $shape->validate($pristine, $this->level + 1);
+
+		if ($result->isValid()) {
+			return new Value($result->values(), $pristine);
+		}
+
+		return new Value(
+			$pristine,
+			$pristine,
+			[
+				'errors' => $result->violations(),
+				'map' => $result->map(),
+			],
+		);
 	}
 
 	/**
