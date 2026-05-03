@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
+use Duon\Sire\CoercerRegistry;
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Contract\Validator;
@@ -317,6 +318,29 @@ class ShapeTest extends TestCase
 		$result = $shape->validate(['slug' => 'Not A Slug']);
 		$this->assertFalse($result->isValid());
 		$this->assertSame('Invalid slug', $result->errors()['map']['slug'][0]);
+	}
+
+	public function testCustomCoercerRegistry(): void
+	{
+		$registry = new CoercerRegistry([
+			'upper' => new class implements Coercer {
+				#[Override]
+				public function coerce(mixed $pristine, string $label): \Duon\Sire\Contract\Coercion
+				{
+					$value = is_string($pristine) ? strtoupper($pristine) : $pristine;
+
+					return new Coercion(new \Duon\Sire\Value($value, $pristine));
+				}
+			},
+		]);
+
+		$shape = new Shape()->types($registry);
+		$shape->add('field', 'upper');
+
+		$result = $shape->validate(['field' => 'value']);
+		$this->assertTrue($result->isValid());
+		$this->assertSame('VALUE', $result->values()['field']);
+		$this->assertSame('value', $result->pristineValues()['field']);
 	}
 
 	public function testResult(): void
