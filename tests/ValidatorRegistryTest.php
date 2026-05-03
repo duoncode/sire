@@ -24,7 +24,7 @@ class ValidatorRegistryTest extends TestCase
 
 		$this->assertNull($registry->get('starts_with'));
 		$this->assertSame($updatedRegistry->get('starts_with'), $updatedRegistry->get('starts_with'));
-		$this->assertInstanceOf(Validator::class, $updatedRegistry->get('ends_with'));
+		$this->assertInstanceOf(Contract\Validator::class, $updatedRegistry->get('ends_with'));
 	}
 
 	public function testWithManyHandlesEmptyInput(): void
@@ -39,14 +39,14 @@ class ValidatorRegistryTest extends TestCase
 	{
 		$registry = ValidatorRegistry::withDefaults();
 
-		$this->assertInstanceOf(Validator::class, $registry->get('required'));
-		$this->assertInstanceOf(Validator::class, $registry->get('email'));
-		$this->assertInstanceOf(Validator::class, $registry->get('minlen'));
-		$this->assertInstanceOf(Validator::class, $registry->get('maxlen'));
-		$this->assertInstanceOf(Validator::class, $registry->get('min'));
-		$this->assertInstanceOf(Validator::class, $registry->get('max'));
-		$this->assertInstanceOf(Validator::class, $registry->get('regex'));
-		$this->assertInstanceOf(Validator::class, $registry->get('in'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('required'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('email'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('minlen'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('maxlen'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('min'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('max'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('regex'));
+		$this->assertInstanceOf(Contract\Validator::class, $registry->get('in'));
 	}
 
 	public function testWithDefaultsMemoizesBuiltInValidators(): void
@@ -75,7 +75,7 @@ class ValidatorRegistryTest extends TestCase
 	{
 		$fallback = new class implements Contract\ValidatorRegistry {
 			#[Override]
-			public function get(string $name): ?Validator
+			public function get(string $name): ?Contract\Validator
 			{
 				throw new RuntimeException('Fallback should not be queried');
 			}
