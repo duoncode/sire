@@ -11,8 +11,8 @@ use ValueError;
 /** @api */
 final class Shape implements Contract\Shape
 {
-	/** @var array<string, Validator> */
-	private array $validators = [];
+	/** @var null|array<string, Validator> */
+	private ?array $validators = null;
 
 	/** @var array<string, Rule> */
 	private array $rules = [];
@@ -20,8 +20,8 @@ final class Shape implements Contract\Shape
 	/** @var list<Closure(Review): void> */
 	private array $reviewCallbacks = [];
 
-	/** @var array<string, Contract\TypeCaster> */
-	private array $typeCasters = [];
+	/** @var null|array<string, Contract\TypeCaster> */
+	private ?array $typeCasters = null;
 
 	private bool $list = false;
 
@@ -29,14 +29,9 @@ final class Shape implements Contract\Shape
 
 	private ?string $title = null;
 
-	private Contract\ValidatorParser $validatorParser;
+	private ?Contract\ValidatorParser $validatorParser = null;
 
-	public function __construct()
-	{
-		$this->validators = ValidatorRegistry::withDefaults()->all();
-		$this->typeCasters = TypeCasterRegistry::withDefaults(self::messages())->all();
-		$this->validatorParser = new ValidatorParser();
-	}
+	public function __construct() {}
 
 	public static function list(): self
 	{
@@ -66,7 +61,9 @@ final class Shape implements Contract\Shape
 
 	public function validator(string $name, Validator $validator): self
 	{
-		$this->validators[$name] = $validator;
+		$validators = $this->loadedValidators();
+		$validators[$name] = $validator;
+		$this->validators = $validators;
 
 		return $this;
 	}
@@ -80,7 +77,9 @@ final class Shape implements Contract\Shape
 
 	public function type(string $name, Contract\TypeCaster $caster): self
 	{
-		$this->typeCasters[$name] = $caster;
+		$typeCasters = $this->loadedTypeCasters();
+		$typeCasters[$name] = $caster;
+		$this->typeCasters = $typeCasters;
 
 		return $this;
 	}
@@ -160,6 +159,23 @@ final class Shape implements Contract\Shape
 		];
 	}
 
+	/** @return array<string, Validator> */
+	private function loadedValidators(): array
+	{
+		return $this->validators ??= ValidatorRegistry::withDefaults()->all();
+	}
+
+	/** @return array<string, Contract\TypeCaster> */
+	private function loadedTypeCasters(): array
+	{
+		return $this->typeCasters ??= TypeCasterRegistry::withDefaults(self::messages())->all();
+	}
+
+	private function loadedValidatorParser(): Contract\ValidatorParser
+	{
+		return $this->validatorParser ??= new ValidatorParser();
+	}
+
 	private function definition(): ShapeDefinition
 	{
 		return new ShapeDefinition(
@@ -167,9 +183,9 @@ final class Shape implements Contract\Shape
 			$this->keepUnknown,
 			$this->title,
 			$this->rules,
-			$this->validators,
-			$this->typeCasters,
-			$this->validatorParser,
+			$this->loadedValidators(),
+			$this->loadedTypeCasters(),
+			$this->loadedValidatorParser(),
 			$this->reviewCallbacks,
 		);
 	}
