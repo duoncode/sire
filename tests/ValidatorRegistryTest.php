@@ -6,7 +6,6 @@ namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Contract\Value;
-use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
 use Override;
 use RuntimeException;
@@ -18,8 +17,8 @@ class ValidatorRegistryTest extends TestCase
 		$registry = new ValidatorRegistry();
 
 		$updatedRegistry = $registry->withMany([
-			'starts_with' => self::stringValidator('starts_with'),
-			'ends_with' => self::stringValidator('ends_with'),
+			'starts_with' => self::stringValidator(),
+			'ends_with' => self::stringValidator(),
 		]);
 
 		$this->assertNull($registry->get('starts_with'));
@@ -65,7 +64,7 @@ class ValidatorRegistryTest extends TestCase
 
 	public function testCustomValidatorShadowsDefaults(): void
 	{
-		$validator = self::stringValidator('required');
+		$validator = self::stringValidator();
 		$registry = ValidatorRegistry::withDefaults()->with('required', $validator);
 
 		$this->assertSame($validator, $registry->get('required'));
@@ -81,19 +80,24 @@ class ValidatorRegistryTest extends TestCase
 			}
 		};
 
-		$validator = self::stringValidator('required');
+		$validator = self::stringValidator();
 		$registry = new ValidatorRegistry(['required' => $validator], $fallback);
 
 		$this->assertSame($validator, $registry->get('required'));
 	}
 
-	private static function stringValidator(string $name): Validator
+	private static function stringValidator(): Contract\Validator
 	{
-		return new Validator(
-			$name,
-			'Must match',
-			static fn(Value $value, string ...$_args): bool => is_string($value->value),
-			true,
-		);
+		return new class implements Contract\Validator {
+			public string $message = 'Must match';
+
+			public bool $skipEmpty = true;
+
+			#[Override]
+			public function validate(Value $value, string ...$args): bool
+			{
+				return is_string($value->value);
+			}
+		};
 	}
 }

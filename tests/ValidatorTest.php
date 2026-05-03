@@ -5,36 +5,21 @@ declare(strict_types=1);
 namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract;
-use Duon\Sire\Validator;
-use Duon\Sire\Value;
+use Duon\Sire\Validator\Required;
 
 class ValidatorTest extends TestCase
 {
-	public function testValidatorValidates(): void
+	public function testBuiltInValidatorExposesMetadata(): void
 	{
-		$validator = new Validator(
-			'same',
-			'Same',
-			static fn(Value $value, string $compare): bool => $value->value === $compare,
-			false,
-		);
+		$validator = new Required();
 
-		$value = new Value('testvalue', 'testvalue');
-		$this->assertTrue($validator->validate($value, 'testvalue'));
-		$value = new Value('wrongvalue', 'wrongvalue');
-		$this->assertFalse($validator->validate($value, 'testvalue'));
-		$value = new Value(null, null);
-		$this->assertFalse($validator->validate($value, 'testvalue'));
+		$this->assertSame('Required', $validator->message);
+		$this->assertFalse($validator->skipEmpty);
 	}
 
-	public function testValidatorAcceptsValueImplementation(): void
+	public function testBuiltInValidatorAcceptsValueImplementation(): void
 	{
-		$validator = new Validator(
-			'same',
-			'Same',
-			static fn(Contract\Value $value, string $compare): bool => $value->value === $compare,
-			false,
-		);
+		$validator = new Required();
 
 		$value = new class implements Contract\Value {
 			public mixed $value = 'testvalue';
@@ -42,6 +27,6 @@ class ValidatorTest extends TestCase
 			public array|string|null $error = null;
 		};
 
-		$this->assertTrue($validator->validate($value, 'testvalue'));
+		$this->assertTrue($validator->validate($value));
 	}
 }
