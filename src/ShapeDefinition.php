@@ -19,7 +19,7 @@ final readonly class ShapeDefinition
 		public ?string $title,
 		public array $rules,
 		public Contract\ValidatorRegistry $validators,
-		public Contract\TypeCasterRegistry $typeCasters,
+		public Contract\CoercerRegistry $coercers,
 		public Contract\ValidatorParser $validatorParser,
 		public array $reviewCallbacks,
 	) {}

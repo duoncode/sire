@@ -189,13 +189,13 @@ final class ValidationRun
 			return $this->toSubValues($value, $shape);
 		}
 
-		$caster = $this->shape->typeCasters->get($type);
+		$coercer = $this->shape->coercers->get($type);
 
-		if ($caster === null) {
+		if ($coercer === null) {
 			throw new ValueError('Wrong shape type');
 		}
 
-		return $caster->cast($value, $rule->name());
+		return $coercer->coerce($value, $rule->name());
 	}
 
 	private function toSubValues(mixed $pristine, Contract\Shape $shape): Value

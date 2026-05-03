@@ -109,7 +109,7 @@ $user
     ->prepare(static fn(mixed $value): mixed => $value ?? []);
 ```
 
-If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the rule type, normal casting or nested validation reports the validation error.
+If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the rule type, normal coercion or nested validation reports the validation error.
 
 ## Read validation results
 
@@ -120,8 +120,8 @@ The `Result` object is the primary output of validation. Use it as your source o
 - `errors()` returns a structured array output.
 - `errors(grouped: true)` groups errors by shape section.
 - `map()` returns a field-to-messages map.
-- `values()` returns cast values.
-- `pristineValues()` returns values before casting. If `Rule::prepare()` is used, these are the prepared values, not the original raw input.
+- `values()` returns coerced values.
+- `pristineValues()` returns values before coercion. If `Rule::prepare()` is used, these are the prepared values, not the original raw input.
 
 `Result` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
 
@@ -211,14 +211,14 @@ final class LoginShape implements ShapeContract
 
 Delegating shapes can be used anywhere a nested shape is accepted because Sire rules accept `Contract\Shape`.
 
-## Extend validators and type casters
+## Extend validators and coercers
 
-Configure a shape fluently when you need project-specific rules, casting behavior, or DSL parsing.
+Configure a shape fluently when you need project-specific rules, coercion behavior, or DSL parsing.
 
 - Use `validator()` to add or replace one validator.
 - Use `validators()` to replace the validator registry.
-- Use `type()` to add or replace one type caster.
-- Use `types()` to replace the type caster registry.
+- Use `coercer()` to add or replace one coercer.
+- Use `coercers()` to replace the coercer registry.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
 ## Next steps

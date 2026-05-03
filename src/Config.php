@@ -23,10 +23,10 @@ final class Config
 	/** @var array<string, Validator> */
 	private array $validators = [];
 
-	private ?Contract\TypeCasterRegistry $typeCasterRegistry = null;
+	private ?Contract\CoercerRegistry $coercerRegistry = null;
 
-	/** @var array<string, Contract\TypeCaster> */
-	private array $typeCasters = [];
+	/** @var array<string, Contract\Coercer> */
+	private array $coercers = [];
 
 	private ?Contract\ValidatorParser $validatorParser = null;
 
@@ -56,15 +56,15 @@ final class Config
 		$this->validators = [];
 	}
 
-	public function type(string $name, Contract\TypeCaster $caster): void
+	public function coercer(string $name, Contract\Coercer $coercer): void
 	{
-		$this->typeCasters[$name] = $caster;
+		$this->coercers[$name] = $coercer;
 	}
 
-	public function types(Contract\TypeCasterRegistry $registry): void
+	public function coercers(Contract\CoercerRegistry $registry): void
 	{
-		$this->typeCasterRegistry = $registry;
-		$this->typeCasters = [];
+		$this->coercerRegistry = $registry;
+		$this->coercers = [];
 	}
 
 	public function validatorParser(Contract\ValidatorParser $parser): void
@@ -84,7 +84,7 @@ final class Config
 			$this->title,
 			$rules,
 			$this->resolvedValidatorRegistry(),
-			$this->resolvedTypeCasterRegistry(),
+			$this->resolvedCoercerRegistry(),
 			$this->resolvedValidatorParser(),
 			$reviewCallbacks,
 		);
@@ -131,15 +131,15 @@ final class Config
 		return new ValidatorRegistry($this->validators, $this->validatorRegistry);
 	}
 
-	private function resolvedTypeCasterRegistry(): Contract\TypeCasterRegistry
+	private function resolvedCoercerRegistry(): Contract\CoercerRegistry
 	{
-		$this->typeCasterRegistry ??= TypeCasterRegistry::withDefaults($this->messages());
+		$this->coercerRegistry ??= CoercerRegistry::withDefaults($this->messages());
 
-		if ($this->typeCasters === []) {
-			return $this->typeCasterRegistry;
+		if ($this->coercers === []) {
+			return $this->coercerRegistry;
 		}
 
-		return new TypeCasterRegistry($this->typeCasters, $this->typeCasterRegistry);
+		return new CoercerRegistry($this->coercers, $this->coercerRegistry);
 	}
 
 	private function resolvedValidatorParser(): Contract\ValidatorParser

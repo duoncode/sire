@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
+use Duon\Sire\CoercerRegistry;
+use Duon\Sire\Contract\Coercer as CoercerContract;
 use Duon\Sire\Contract\ValidatorParser as ValidatorParserContract;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
-use Duon\Sire\TypeCaster;
-use Duon\Sire\TypeCasterRegistry;
 use Duon\Sire\Validator;
 use Duon\Sire\ValidatorRegistry;
 use Duon\Sire\Value;
@@ -309,17 +309,21 @@ class ShapeTest extends TestCase
 		$this->assertSame('Must start with foo', $result->errors()['map']['field'][0]);
 	}
 
-	public function testCustomTypeCaster(): void
+	public function testCustomCoercer(): void
 	{
-		$shape = new Shape()->type(
+		$shape = new Shape()->coercer(
 			'slug',
-			new TypeCaster(static function (mixed $pristine, string $label): Value {
-				if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
-					return new Value($pristine, $pristine, 'Invalid slug');
-				}
+			new class implements CoercerContract {
+				#[Override]
+				public function coerce(mixed $pristine, string $label): Value
+				{
+					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
+						return new Value($pristine, $pristine, 'Invalid slug');
+					}
 
-				return new Value($pristine, $pristine);
-			}),
+					return new Value($pristine, $pristine);
+				}
+			},
 		);
 		$shape->add('slug', 'slug', 'required');
 
@@ -367,17 +371,21 @@ class ShapeTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('Wrong error type');
 
-		$registry = new TypeCasterRegistry([
-			'text' => new TypeCaster(
-				static fn(mixed $pristine, string $label): Value => new Value(
-					$pristine,
-					$pristine,
-					['not', 'a', 'string'],
-				),
-			),
+		$registry = new CoercerRegistry([
+			'text' => new class implements CoercerContract {
+				#[Override]
+				public function coerce(mixed $pristine, string $label): Value
+				{
+					return new Value(
+						$pristine,
+						$pristine,
+						['not', 'a', 'string'],
+					);
+				}
+			},
 		]);
 
-		$shape = new Shape()->types($registry);
+		$shape = new Shape()->coercers($registry);
 		$shape->add('field', 'text');
 		$shape->validate(['field' => 'value']);
 	}
