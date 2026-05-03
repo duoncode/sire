@@ -255,7 +255,7 @@ class ShapeTest extends TestCase
 			),
 		);
 
-		$shape = new Shape(validatorRegistry: $registry);
+		$shape = new Shape()->validators($registry);
 		$shape->add('field', 'text', 'required', 'starts_with:foo');
 
 		$result = $shape->validate(['field' => 'foobar']);
@@ -297,10 +297,9 @@ class ShapeTest extends TestCase
 			}
 		};
 
-		$shape = new Shape(
-			validatorRegistry: $registry,
-			validatorParser: $parser,
-		);
+		$shape = new Shape()
+			->validators($registry)
+			->validatorParser($parser);
 		$shape->add('field', 'text', 'starts_with|foo');
 
 		$result = $shape->validate(['field' => 'foobar']);
@@ -310,14 +309,9 @@ class ShapeTest extends TestCase
 		$this->assertSame('Must start with foo', $result->errors()['map']['field'][0]);
 	}
 
-	public function testCustomTypeCasterRegistry(): void
+	public function testCustomTypeCaster(): void
 	{
-		$registry = TypeCasterRegistry::withDefaults([
-			'bool' => 'Invalid boolean',
-			'float' => 'Invalid number',
-			'int' => 'Invalid number',
-			'list' => 'Invalid list',
-		])->with(
+		$shape = new Shape()->type(
 			'slug',
 			new TypeCaster(static function (mixed $pristine, string $label): Value {
 				if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
@@ -327,8 +321,6 @@ class ShapeTest extends TestCase
 				return new Value($pristine, $pristine);
 			}),
 		);
-
-		$shape = new Shape(typeCasterRegistry: $registry);
 		$shape->add('slug', 'slug', 'required');
 
 		$result = $shape->validate(['slug' => 'test-slug']);
@@ -385,7 +377,7 @@ class ShapeTest extends TestCase
 			),
 		]);
 
-		$shape = new Shape(typeCasterRegistry: $registry);
+		$shape = new Shape()->types($registry);
 		$shape->add('field', 'text');
 		$shape->validate(['field' => 'value']);
 	}
@@ -417,7 +409,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('13', $pristine['unknown_2']);
 		$this->assertArrayNotHasKey('unknown_3', $pristine);
 
-		$shape = new Shape(false, true);
+		$shape = new Shape()->keepUnknown();
 		$shape->add('unknown_1', 'text');
 		$shape->add('unknown_2', 'int');
 
@@ -674,8 +666,9 @@ class ShapeTest extends TestCase
 
 	public function testEscapedAndQuotedColonArgument(): void
 	{
-		$registry = new ValidatorRegistry([
-			'starts_with' => new Validator(
+		$shape = new Shape()->validator(
+			'starts_with',
+			new Validator(
 				'starts_with',
 				'Must start with %4$s',
 				static function (Value $value, string ...$args): bool {
@@ -685,9 +678,7 @@ class ShapeTest extends TestCase
 				},
 				true,
 			),
-		]);
-
-		$shape = new Shape(validatorRegistry: $registry);
+		);
 		$shape->add('escaped', 'text', 'starts_with:http\\://');
 		$shape->add('quoted', 'text', 'starts_with:"http://"');
 		$shape->add('invalid', 'text', 'starts_with:http\\://');
@@ -706,7 +697,7 @@ class ShapeTest extends TestCase
 
 	public function testReviewCallbackAddsErrors(): void
 	{
-		$shape = new Shape(title: 'Review Title');
+		$shape = new Shape()->title('Review Title');
 		$shape->add('email', 'text', 'required')->label('Email');
 		$shape->review(static function (Review $context): void {
 			self::assertSame(['email' => 'taken@example.com'], $context->values());
@@ -881,7 +872,7 @@ class ShapeTest extends TestCase
 			],
 		];
 
-		$shape = new Shape(true);
+		$shape = Shape::list();
 		$shape->add('int', 'int', 'required');
 		$shape->add('text', 'text', 'required');
 		$shape->add('single_shape', new SubShape());
@@ -947,7 +938,7 @@ class ShapeTest extends TestCase
 		$this->expectException(ValueError::class);
 		$this->expectExceptionMessage('must not be empty');
 
-		$shape = new Shape(langs: ['de', 'en']);
+		$shape = new Shape();
 		$shape->add('', 'Int', 'int');
 	}
 

@@ -23,28 +23,80 @@ final class Shape implements Contract\Shape
 	/** @var array<string, Contract\TypeCaster> */
 	private array $typeCasters = [];
 
-	private Contract\ValidatorRegistry $validatorRegistry;
+	private bool $list = false;
+
+	private bool $keepUnknown = false;
+
+	private ?string $title = null;
 
 	private Contract\ValidatorParser $validatorParser;
 
-	private Contract\TypeCasterRegistry $typeCasterRegistry;
+	public function __construct()
+	{
+		$this->validators = ValidatorRegistry::withDefaults()->all();
+		$this->typeCasters = TypeCasterRegistry::withDefaults(self::messages())->all();
+		$this->validatorParser = new ValidatorParser();
+	}
 
-	public function __construct(
-		private bool $list = false,
-		private bool $keepUnknown = false,
-		array $langs = [],
-		private ?string $title = null,
-		?Contract\ValidatorRegistry $validatorRegistry = null,
-		?Contract\ValidatorParser $validatorParser = null,
-		?Contract\TypeCasterRegistry $typeCasterRegistry = null,
-	) {
-		unset($langs);
-		$messages = self::messages();
-		$this->validatorRegistry = $validatorRegistry ?? ValidatorRegistry::withDefaults();
-		$this->validatorParser = $validatorParser ?? new ValidatorParser();
-		$this->typeCasterRegistry = $typeCasterRegistry ?? TypeCasterRegistry::withDefaults($messages);
-		$this->loadDefaultValidators();
-		$this->loadDefaultTypeCasters();
+	public static function list(): self
+	{
+		return new self()->asList();
+	}
+
+	public function asList(bool $list = true): self
+	{
+		$this->list = $list;
+
+		return $this;
+	}
+
+	public function keepUnknown(bool $keep = true): self
+	{
+		$this->keepUnknown = $keep;
+
+		return $this;
+	}
+
+	public function title(?string $title): self
+	{
+		$this->title = $title;
+
+		return $this;
+	}
+
+	public function validator(string $name, Validator $validator): self
+	{
+		$this->validators[$name] = $validator;
+
+		return $this;
+	}
+
+	public function validators(Contract\ValidatorRegistry $registry): self
+	{
+		$this->validators = $registry->all();
+
+		return $this;
+	}
+
+	public function type(string $name, Contract\TypeCaster $caster): self
+	{
+		$this->typeCasters[$name] = $caster;
+
+		return $this;
+	}
+
+	public function types(Contract\TypeCasterRegistry $registry): self
+	{
+		$this->typeCasters = $registry->all();
+
+		return $this;
+	}
+
+	public function validatorParser(Contract\ValidatorParser $parser): self
+	{
+		$this->validatorParser = $parser;
+
+		return $this;
 	}
 
 	public function add(
@@ -106,20 +158,6 @@ final class Shape implements Contract\Shape
 			'int' => 'Invalid number',
 			'list' => 'Invalid list',
 		];
-	}
-
-	private function loadDefaultValidators(): void
-	{
-		foreach ($this->validatorRegistry->all() as $name => $validator) {
-			$this->validators[$name] = $validator;
-		}
-	}
-
-	private function loadDefaultTypeCasters(): void
-	{
-		foreach ($this->typeCasterRegistry->all() as $name => $caster) {
-			$this->typeCasters[$name] = $caster;
-		}
 	}
 
 	private function definition(): ShapeDefinition
