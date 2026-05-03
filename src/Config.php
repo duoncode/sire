@@ -122,42 +122,24 @@ final class Config
 
 	private function loadedValidatorRegistry(): Contract\ValidatorRegistry
 	{
-		$registry = $this->baseValidatorRegistry();
+		$this->validatorRegistry ??= ValidatorRegistry::withDefaults();
 
 		if ($this->validators === []) {
-			return $registry;
+			return $this->validatorRegistry;
 		}
 
-		return new ValidatorRegistry($this->validators, $registry);
-	}
-
-	private function baseValidatorRegistry(): Contract\ValidatorRegistry
-	{
-		if ($this->validatorRegistry === null) {
-			$this->validatorRegistry = ValidatorRegistry::withDefaults();
-		}
-
-		return $this->validatorRegistry;
+		return new ValidatorRegistry($this->validators, $this->validatorRegistry);
 	}
 
 	private function loadedTypeCasterRegistry(): Contract\TypeCasterRegistry
 	{
-		$registry = $this->baseTypeCasterRegistry();
+		$this->typeCasterRegistry ??= TypeCasterRegistry::withDefaults($this->messages());
 
 		if ($this->typeCasters === []) {
-			return $registry;
+			return $this->typeCasterRegistry;
 		}
 
-		return new TypeCasterRegistry($this->typeCasters, $registry);
-	}
-
-	private function baseTypeCasterRegistry(): Contract\TypeCasterRegistry
-	{
-		if ($this->typeCasterRegistry === null) {
-			$this->typeCasterRegistry = TypeCasterRegistry::withDefaults($this->messages());
-		}
-
-		return $this->typeCasterRegistry;
+		return new TypeCasterRegistry($this->typeCasters, $this->typeCasterRegistry);
 	}
 
 	private function loadedValidatorParser(): Contract\ValidatorParser
