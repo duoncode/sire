@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire;
 
 /** @api */
-enum EmptyValue: string
+enum Blank: string
 {
 	case Missing = 'missing';
 	case Null = 'null';

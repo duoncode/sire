@@ -131,17 +131,17 @@ $result = $shape->validate([]);
 var_dump($result->values()); // ['status' => 'draft', 'count' => 0]
 ```
 
-Use `empty()` to configure which raw input states count as empty for a rule. Empty values are handled before preparation. They use the default when one exists, are omitted when the rule is optional, or report the normal missing-field error otherwise. The enum is named `EmptyValue` because `empty` is a PHP language construct.
+Use `empty()` to configure which raw input states count as empty for a rule. Empty values are handled before preparation. They use the default when one exists, are omitted when the rule is optional, or report the normal missing-field error otherwise. The enum is named `Blank` because `empty` is a PHP language construct.
 
 ```php
 <?php
 
-use Duon\Sire\EmptyValue;
+use Duon\Sire\Blank;
 use Duon\Sire\Shape;
 
 $shape = new Shape();
 $shape->add('status', 'text')
-    ->empty(EmptyValue::Missing, EmptyValue::Null, EmptyValue::Whitespace)
+    ->empty(Blank::Missing, Blank::Null, Blank::Whitespace)
     ->default('draft');
 
 var_dump($shape->validate([])->values()['status']); // "draft"
@@ -149,13 +149,13 @@ var_dump($shape->validate(['status' => null])->values()['status']); // "draft"
 var_dump($shape->validate(['status' => '  '])->values()['status']); // "draft"
 ```
 
-`empty()` replaces the rule's empty-value set. Include `EmptyValue::Missing` when a default should still apply to missing input.
+`empty()` replaces the rule's empty-value set. Include `Blank::Missing` when a default should still apply to missing input.
 
-- `EmptyValue::Missing` matches an absent field.
-- `EmptyValue::Null` matches explicit `null`.
-- `EmptyValue::String` matches exact `''`.
-- `EmptyValue::Whitespace` matches strings where `trim($value) === ''`, including `''`.
-- `EmptyValue::List` matches exact `[]`.
+- `Blank::Missing` matches an absent field.
+- `Blank::Null` matches explicit `null`.
+- `Blank::String` matches exact `''`.
+- `Blank::Whitespace` matches strings where `trim($value) === ''`, including `''`.
+- `Blank::List` matches exact `[]`.
 
 You can pass enum cases or strings such as `'null'` and `'whitespace'`.
 

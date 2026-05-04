@@ -15,8 +15,8 @@ final class Rule
 	/** @var list<callable> */
 	private array $finalizers = [];
 
-	/** @var list<EmptyValue> */
-	private array $empty = [EmptyValue::Missing];
+	/** @var list<Blank> */
+	private array $empty = [Blank::Missing];
 
 	private bool $hasDefault = false;
 
@@ -59,12 +59,12 @@ final class Rule
 		return $this;
 	}
 
-	public function empty(EmptyValue|string ...$empty): static
+	public function empty(Blank|string ...$empty): static
 	{
 		$this->empty = [];
 
 		foreach ($empty as $value) {
-			$this->empty[] = $value instanceof EmptyValue ? $value : EmptyValue::from($value);
+			$this->empty[] = $value instanceof Blank ? $value : Blank::from($value);
 		}
 
 		return $this;
@@ -118,10 +118,10 @@ final class Rule
 
 	public function treatsMissingAsEmpty(): bool
 	{
-		return in_array(EmptyValue::Missing, $this->empty, true);
+		return in_array(Blank::Missing, $this->empty, true);
 	}
 
-	public function isEmptyValue(mixed $value): bool
+	public function isBlank(mixed $value): bool
 	{
 		foreach ($this->empty as $empty) {
 			if ($this->matchesEmpty($empty, $value)) {
@@ -186,14 +186,14 @@ final class Rule
 		return $value;
 	}
 
-	private function matchesEmpty(EmptyValue $empty, mixed $value): bool
+	private function matchesEmpty(Blank $empty, mixed $value): bool
 	{
 		return match ($empty) {
-			EmptyValue::Missing => false,
-			EmptyValue::Null => $value === null,
-			EmptyValue::String => $value === '',
-			EmptyValue::Whitespace => is_string($value) && trim($value) === '',
-			EmptyValue::List => $value === [],
+			Blank::Missing => false,
+			Blank::Null => $value === null,
+			Blank::String => $value === '',
+			Blank::Whitespace => is_string($value) && trim($value) === '',
+			Blank::List => $value === [],
 		};
 	}
 

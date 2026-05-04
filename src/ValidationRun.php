@@ -219,7 +219,7 @@ final class ValidationRun
 		array $data,
 		?int $listIndex,
 	): ?Value {
-		if ($rule->isEmptyValue($value)) {
+		if ($rule->isBlank($value)) {
 			return $this->readEmptyValue($field, $rule, $data, $listIndex);
 		}
 

@@ -32,7 +32,7 @@
 - Added `Rule::prepare()` to normalize present or defaulted field values before type casting and nested shape validation.
 - Added `Rule::finalize()` to transform valid output values after field validation and before review callbacks.
 - Added `Rule::optional()`, `Rule::default()`, `Rule::empty()`, and `Rule::nullable()` for field presence control.
-- Added the `EmptyValue` enum for configuring which raw input states count as empty.
+- Added the `Blank` enum for configuring which raw input states count as empty.
 - Added `Rule::message()` and `Rule::messages()` for field-specific type and validator messages.
 - Added quoted and escaped arguments for validator DSL definitions.
 - Added `Contract\Validator`, `Contract\ValidatesEmpty`, `Contract\Coercion`, `Contract\Validation`, and built-in validator classes.

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Duon\Sire\Tests;
 
+use Duon\Sire\Blank;
 use Duon\Sire\CoercerRegistry;
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Contract\Validator;
 use Duon\Sire\Contract\ValidatorParser;
 use Duon\Sire\Contract\Value;
-use Duon\Sire\EmptyValue;
 use Duon\Sire\Extra;
 use Duon\Sire\Failure;
 use Duon\Sire\Review;
@@ -517,17 +517,17 @@ class ShapeTest extends TestCase
 		new Shape()->extra('drop');
 	}
 
-	public function testRejectsInvalidEmptyValue(): void
+	public function testRejectsInvalidBlank(): void
 	{
 		$this->expectException(ValueError::class);
 
 		new Shape()->add('name', 'text')->empty('blank');
 	}
 
-	public function testAcceptsStringEmptyValue(): void
+	public function testAcceptsStringBlank(): void
 	{
 		$shape = new Shape();
-		$shape->add('name', 'text')->empty('missing', EmptyValue::Null);
+		$shape->add('name', 'text')->empty('missing', Blank::Null);
 
 		$result = $shape->validate(['name' => 'Ada']);
 
@@ -928,7 +928,7 @@ class ShapeTest extends TestCase
 		$shape = new Shape();
 		$shape
 			->add('status', 'text')
-			->empty(EmptyValue::Missing, EmptyValue::Null)
+			->empty(Blank::Missing, Blank::Null)
 			->default('draft');
 
 		$nullResult = $shape->validate(['status' => null]);
@@ -945,7 +945,7 @@ class ShapeTest extends TestCase
 	public function testRuleEmptyNullDefaultDoesNotFillMissingWithoutMissingEmpty(): void
 	{
 		$shape = new Shape();
-		$shape->add('status', 'text')->empty(EmptyValue::Null)->default('draft');
+		$shape->add('status', 'text')->empty(Blank::Null)->default('draft');
 
 		$result = $shape->validate([]);
 
@@ -957,7 +957,7 @@ class ShapeTest extends TestCase
 	public function testRuleEmptyStringDefaultMatchesExactString(): void
 	{
 		$shape = new Shape();
-		$shape->add('status', 'text')->empty(EmptyValue::String)->default('draft');
+		$shape->add('status', 'text')->empty(Blank::String)->default('draft');
 
 		$emptyResult = $shape->validate(['status' => '']);
 		$spaceResult = $shape->validate(['status' => ' ']);
@@ -973,7 +973,7 @@ class ShapeTest extends TestCase
 	public function testRuleEmptyWhitespaceDefaultFillsBlankStrings(): void
 	{
 		$shape = new Shape();
-		$shape->add('status', 'text')->empty(EmptyValue::Whitespace)->default('draft');
+		$shape->add('status', 'text')->empty(Blank::Whitespace)->default('draft');
 
 		$emptyResult = $shape->validate(['status' => '']);
 		$blankResult = $shape->validate(['status' => " \n\t"]);
@@ -988,7 +988,7 @@ class ShapeTest extends TestCase
 	public function testRuleEmptyListDefaultFillsEmptyList(): void
 	{
 		$shape = new Shape();
-		$shape->add('items', 'list')->empty(EmptyValue::List)->default(['draft']);
+		$shape->add('items', 'list')->empty(Blank::List)->default(['draft']);
 
 		$result = $shape->validate(['items' => []]);
 
@@ -1003,7 +1003,7 @@ class ShapeTest extends TestCase
 		$shape = new Shape();
 		$shape
 			->add('name', 'text')
-			->empty(EmptyValue::Null)
+			->empty(Blank::Null)
 			->optional()
 			->prepare(static function (mixed $value) use (&$called): mixed {
 				$called = true;
@@ -1022,7 +1022,7 @@ class ShapeTest extends TestCase
 	public function testOptionalRuleOmitsMissingWhenMissingIsNotEmpty(): void
 	{
 		$shape = new Shape();
-		$shape->add('status', 'text')->empty(EmptyValue::Null)->optional();
+		$shape->add('status', 'text')->empty(Blank::Null)->optional();
 
 		$result = $shape->validate([]);
 
@@ -1031,10 +1031,10 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->pristineValues());
 	}
 
-	public function testRuleEmptyValueWithoutDefaultAddsMissingError(): void
+	public function testRuleBlankWithoutDefaultAddsMissingError(): void
 	{
 		$shape = new Shape();
-		$shape->add('title', 'text')->label('Title')->empty(EmptyValue::String);
+		$shape->add('title', 'text')->label('Title')->empty(Blank::String);
 
 		$result = $shape->validate(['title' => '']);
 
@@ -1049,7 +1049,7 @@ class ShapeTest extends TestCase
 		$shape = new Shape();
 		$shape
 			->add('status', 'text')
-			->empty(EmptyValue::Missing, EmptyValue::Null)
+			->empty(Blank::Missing, Blank::Null)
 			->default('draft');
 
 		$result = $shape->validate(['status' => 'published']);
