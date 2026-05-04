@@ -14,6 +14,9 @@ final class Rule
 	/** @var list<Closure(mixed): mixed> */
 	private array $preparers = [];
 
+	/** @var array<string, string> */
+	private array $messages = [];
+
 	/** @param list<string> $validators */
 	public function __construct(
 		public readonly string $field,
@@ -36,6 +39,29 @@ final class Rule
 		return $this;
 	}
 
+	public function message(string $key, string $message): static
+	{
+		$this->messages[$this->messageKey($key)] = $message;
+
+		return $this;
+	}
+
+	/** @param array<string, string> $messages */
+	public function messages(array $messages): static
+	{
+		foreach ($messages as $key => $message) {
+			$this->message($key, $message);
+		}
+
+		return $this;
+	}
+
+	/** @return array<string, string> */
+	public function messageOverrides(): array
+	{
+		return $this->messages;
+	}
+
 	public function name(): string
 	{
 		return $this->label ?? $this->field;
@@ -53,5 +79,18 @@ final class Rule
 		}
 
 		return $value;
+	}
+
+	private function messageKey(string $key): string
+	{
+		if ($key === 'type') {
+			return 'type.' . $this->type();
+		}
+
+		if (str_starts_with($key, 'type.') || str_starts_with($key, 'validator.')) {
+			return $key;
+		}
+
+		return 'validator.' . $key;
 	}
 }

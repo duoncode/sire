@@ -25,6 +25,25 @@ class MessageFormatterTest extends TestCase
 		$this->assertSame('Age/age/raw/extra', $message);
 	}
 
+	public function testUsesLocalFailureMessageKey(): void
+	{
+		$formatter = new MessageFormatter([
+			'type.int' => 'Global {field}',
+		]);
+
+		$message = $formatter->format(
+			Failure::key('type.int'),
+			'Age',
+			'age',
+			'raw',
+			messages: [
+				'type.int' => 'Local {field}',
+			],
+		);
+
+		$this->assertSame('Local age', $message);
+	}
+
 	public function testFormatsDefaultArguments(): void
 	{
 		$formatter = new MessageFormatter([

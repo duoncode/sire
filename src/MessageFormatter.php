@@ -16,6 +16,7 @@ final readonly class MessageFormatter
 	 * Message templates receive label, field, pristine value, then failure or validator arguments.
 	 *
 	 * @param list<mixed> $args
+	 * @param array<string, string> $messages
 	 */
 	public function format(
 		Failure $failure,
@@ -25,15 +26,29 @@ final readonly class MessageFormatter
 		?string $defaultKey = null,
 		string $fallback = 'Invalid value',
 		array $args = [],
+		array $messages = [],
 	): string {
-		$template = $this->template($failure, $defaultKey, $fallback);
+		$template = $this->template($failure, $defaultKey, $fallback, $messages);
 		$args = $failure->args === [] ? $args : $failure->args;
 
 		return self::render($template, $label, $field, $pristine, $args);
 	}
 
-	private function template(Failure $failure, ?string $defaultKey, string $fallback): string
-	{
+	/** @param array<string, string> $messages */
+	private function template(
+		Failure $failure,
+		?string $defaultKey,
+		string $fallback,
+		array $messages,
+	): string {
+		if ($failure->key !== '' && array_key_exists($failure->key, $messages)) {
+			return $messages[$failure->key];
+		}
+
+		if ($defaultKey !== null && array_key_exists($defaultKey, $messages)) {
+			return $messages[$defaultKey];
+		}
+
 		if ($failure->key !== '' && array_key_exists($failure->key, $this->messages)) {
 			return $this->messages[$failure->key];
 		}

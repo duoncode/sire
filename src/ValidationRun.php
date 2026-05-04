@@ -97,6 +97,7 @@ final class ValidationRun
 					'validator.' . $validatorName,
 					$validator->message,
 					$validatorArgs,
+					$rule->messageOverrides(),
 				),
 				$listIndex,
 				$this->shape->title,
@@ -258,6 +259,7 @@ final class ValidationRun
 			$coercion->pristine,
 			'type.' . $rule->type(),
 			$coercer->message,
+			messages: $rule->messageOverrides(),
 		);
 	}
 

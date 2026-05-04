@@ -111,6 +111,57 @@ class ShapeTest extends TestCase
 		$this->assertSame('Age must be at least 18, got 12', $result->map()['age'][0]);
 	}
 
+	public function testRuleTypeMessageOverridesShapeMessage(): void
+	{
+		$shape = new Shape()->message('type.int', 'Global int error');
+		$shape->add('age', 'int')->message('type', 'Age must be a whole number');
+		$shape->add('count', 'int');
+
+		$result = $shape->validate([
+			'age' => 'old',
+			'count' => 'many',
+		]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Age must be a whole number', $result->map()['age'][0]);
+		$this->assertSame('Global int error', $result->map()['count'][0]);
+	}
+
+	public function testRuleValidatorMessageOverridesShapeMessage(): void
+	{
+		$shape = new Shape()->message('validator.max', 'Global max {arg1}');
+		$shape->add('age', 'int', 'max:120')->message('max', 'Age must be at most {arg1}, got {value}');
+		$shape->add('score', 'int', 'max:10');
+
+		$result = $shape->validate([
+			'age' => '130',
+			'score' => '11',
+		]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Age must be at most 120, got 130', $result->map()['age'][0]);
+		$this->assertSame('Global max 10', $result->map()['score'][0]);
+	}
+
+	public function testRuleMessagesSupportExplicitKeys(): void
+	{
+		$shape = new Shape();
+		$shape->add('age', 'int', 'max:120')->messages([
+			'type.int' => 'Age must be numeric',
+			'validator.max' => 'Age must be at most {arg1}',
+		]);
+
+		$result = $shape->validate(['age' => 'old']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Age must be numeric', $result->map()['age'][0]);
+
+		$result = $shape->validate(['age' => '121']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Age must be at most 120', $result->map()['age'][0]);
+	}
+
 	public function testTypeFloat(): void
 	{
 		$testData = [
