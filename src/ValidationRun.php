@@ -241,6 +241,14 @@ final class ValidationRun
 	private function readKnownValue(Rule $rule, mixed $value, array $data): ReadValue
 	{
 		$value = $rule->applyPreparation($value, $data);
+
+		if ($value === null) {
+			return new ReadValue(
+				new \Duon\Sire\Value(null, null),
+				$rule->isNullable() ? null : $this->formatNullFailure($rule),
+			);
+		}
+
 		$type = $rule->type();
 
 		if ($type === 'shape') {
@@ -274,6 +282,19 @@ final class ValidationRun
 			$value,
 			'extra',
 			'Field "{field}" is not allowed',
+		);
+	}
+
+	private function formatNullFailure(Rule $rule): string
+	{
+		return $this->shape->messageFormatter->format(
+			Failure::key('null'),
+			$rule->name(),
+			$rule->field,
+			null,
+			'null',
+			'{label} must not be null',
+			messages: $rule->messageOverrides(),
 		);
 	}
 

@@ -16,6 +16,8 @@ final class Rule
 
 	private mixed $default = null;
 
+	private bool $nullable = false;
+
 	/** @var array<string, string> */
 	private array $messages = [];
 
@@ -46,6 +48,17 @@ final class Rule
 		$this->default = $value;
 		$this->hasDefault = true;
 
+		if ($value === null) {
+			$this->nullable();
+		}
+
+		return $this;
+	}
+
+	public function nullable(): static
+	{
+		$this->nullable = true;
+
 		return $this;
 	}
 
@@ -57,6 +70,11 @@ final class Rule
 	public function defaultValue(): mixed
 	{
 		return $this->default;
+	}
+
+	public function isNullable(): bool
+	{
+		return $this->nullable;
 	}
 
 	public function message(string $key, string $message): static
@@ -106,6 +124,10 @@ final class Rule
 	{
 		if ($key === 'type') {
 			return 'type.' . $this->type();
+		}
+
+		if ($key === 'null') {
+			return $key;
 		}
 
 		if (str_starts_with($key, 'type.') || str_starts_with($key, 'validator.')) {

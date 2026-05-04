@@ -920,6 +920,64 @@ class ShapeTest extends TestCase
 		$this->assertNull($result->pristineValues()['child']);
 	}
 
+	public function testNullableRuleAllowsNullValue(): void
+	{
+		$shape = new Shape();
+		$shape->add('items', 'list')->label('Items')->nullable();
+
+		$result = $shape->validate(['items' => null]);
+
+		$this->assertTrue($result->isValid());
+		$this->assertNull($result->values()['items']);
+		$this->assertNull($result->pristineValues()['items']);
+	}
+
+	public function testNonNullableRuleRejectsNullValue(): void
+	{
+		$shape = new Shape();
+		$shape->add('items', 'list')->label('Items');
+
+		$result = $shape->validate(['items' => null]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Items must not be null', $result->map()['items'][0]);
+	}
+
+	public function testRuleNullMessageOverridesShapeMessage(): void
+	{
+		$shape = new Shape();
+		$shape->message('null', 'Shape null');
+		$shape->add('items', 'list')->label('Items')->message('null', '{label} cannot be null');
+
+		$result = $shape->validate(['items' => null]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Items cannot be null', $result->map()['items'][0]);
+	}
+
+	public function testNullRuleDefaultImpliesNullable(): void
+	{
+		$shape = new Shape();
+		$shape->add('note', 'text')->default(null);
+
+		$result = $shape->validate([]);
+
+		$this->assertTrue($result->isValid());
+		$this->assertNull($result->values()['note']);
+		$this->assertNull($result->pristineValues()['note']);
+	}
+
+	public function testRequiredNarrowsNullRuleDefault(): void
+	{
+		$shape = new Shape();
+		$shape->add('note', 'text', 'required')->default(null);
+
+		$result = $shape->validate([]);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('note is required', $result->map()['note'][0]);
+	}
+
 	public function testRulePreparationReceivesInputData(): void
 	{
 		$shape = new Shape();
