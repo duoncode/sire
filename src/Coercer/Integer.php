@@ -25,7 +25,7 @@ final readonly class Integer implements Contract\Coercer
 		return new Coercion(
 			$pristine,
 			$pristine,
-			new Failure('type.int'),
+			Failure::invalid(),
 		);
 	}
 }

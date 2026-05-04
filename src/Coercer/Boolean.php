@@ -35,7 +35,7 @@ final readonly class Boolean implements Contract\Coercer
 		return new Coercion(
 			$pristine,
 			$pristine,
-			new Failure('type.bool'),
+			Failure::invalid(),
 		);
 	}
 }

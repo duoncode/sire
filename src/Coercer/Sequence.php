@@ -24,7 +24,7 @@ final readonly class Sequence implements Contract\Coercer
 		return new Coercion(
 			$pristine,
 			$pristine,
-			new Failure('type.list'),
+			Failure::invalid(),
 		);
 	}
 }

@@ -332,7 +332,7 @@ class ShapeTest extends TestCase
 						return new Coercion(
 							$pristine,
 							$pristine,
-							Failure::message('Invalid slug'),
+							Failure::invalid(fallback: 'Invalid slug'),
 						);
 					}
 
@@ -347,6 +347,32 @@ class ShapeTest extends TestCase
 		$result = $shape->validate(['slug' => 'Not A Slug']);
 		$this->assertFalse($result->isValid());
 		$this->assertSame('Invalid slug', $result->errors()['map']['slug'][0]);
+	}
+
+	public function testCustomCoercerUsesTypeMessage(): void
+	{
+		$shape = new Shape()
+			->message('type.slug', 'Custom slug error')
+			->type(
+				'slug',
+				new class implements Coercer {
+					#[Override]
+					public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
+					{
+						return new Coercion(
+							$pristine,
+							$pristine,
+							Failure::invalid(fallback: 'Invalid slug'),
+						);
+					}
+				},
+			);
+		$shape->add('slug', 'slug');
+
+		$result = $shape->validate(['slug' => 'Not A Slug']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Custom slug error', $result->errors()['map']['slug'][0]);
 	}
 
 	public function testCustomCoercerRegistry(): void

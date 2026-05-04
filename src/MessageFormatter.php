@@ -12,12 +12,21 @@ final readonly class MessageFormatter
 		private array $messages,
 	) {}
 
-	public function format(Failure $failure, string $label, string $field, mixed $pristine): string
-	{
+	public function format(
+		Failure $failure,
+		string $label,
+		string $field,
+		mixed $pristine,
+		?string $defaultKey = null,
+	): string {
 		$template = null;
 
 		if ($failure->key !== '') {
 			$template = $this->messages[$failure->key] ?? null;
+		}
+
+		if ($template === null && $defaultKey !== null) {
+			$template = $this->messages[$defaultKey] ?? null;
 		}
 
 		$template ??= $failure->fallback ?? 'Invalid value';

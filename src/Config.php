@@ -111,9 +111,9 @@ final class Config
 		//     %1$s for the field label if set, otherwise the field name
 		//     %2$s for the field name
 		//     %3$s for the original value
-		//     %4$s for the first validator parameter
-		//     %5$s for the next validator parameter
-		//     %6$s for the next validator and so on
+		//     %4$s for the first validator parameter or failure argument
+		//     %5$s for the next validator parameter or failure argument
+		//     %6$s for the next validator parameter or failure argument and so on
 		//
 		//  e. g. 'type.int' => 'Invalid number "%3$s" in field "%1$s"'
 

@@ -213,6 +213,7 @@ final class ValidationRun
 			$rule->name(),
 			$rule->field,
 			$coercion->pristine,
+			'type.' . $rule->type(),
 		);
 	}
 

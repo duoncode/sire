@@ -25,12 +25,29 @@ class MessageFormatterTest extends TestCase
 		$this->assertSame('Age/age/raw/extra', $message);
 	}
 
+	public function testUsesDefaultMessageKey(): void
+	{
+		$formatter = new MessageFormatter([
+			'type.int' => '%1$s must be numeric',
+		]);
+
+		$message = $formatter->format(
+			Failure::invalid(fallback: 'Invalid'),
+			'Age',
+			'age',
+			'raw',
+			'type.int',
+		);
+
+		$this->assertSame('Age must be numeric', $message);
+	}
+
 	public function testUsesFallbackMessage(): void
 	{
 		$formatter = new MessageFormatter([]);
 
 		$message = $formatter->format(
-			new Failure('type.slug', fallback: 'Invalid slug'),
+			Failure::invalid(fallback: 'Invalid slug'),
 			'Slug',
 			'slug',
 			'Raw Value',

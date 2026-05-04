@@ -9,7 +9,7 @@ final readonly class Failure
 {
 	/** @param list<mixed> $args */
 	public function __construct(
-		public string $key,
+		public string $key = '',
 		public array $args = [],
 		public ?string $fallback = null,
 	) {}
@@ -22,8 +22,16 @@ final readonly class Failure
 		return new self($key, $list);
 	}
 
+	public static function invalid(?string $fallback = null, mixed ...$args): self
+	{
+		/** @var list<mixed> $list */
+		$list = $args;
+
+		return new self(args: $list, fallback: $fallback);
+	}
+
 	public static function message(string $message): self
 	{
-		return new self('', fallback: $message);
+		return self::invalid(fallback: $message);
 	}
 }

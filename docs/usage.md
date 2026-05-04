@@ -127,7 +127,7 @@ The `Result` object is the primary output of validation. Use it as your source o
 
 ## Customize type messages
 
-Use `message()` or `messages()` to override type coercion errors for a shape. Built-in type failure keys are `type.int`, `type.float`, `type.bool`, and `type.list`. Custom coercers should use `type.<name>` keys for their own failures.
+Use `message()` or `messages()` to override type coercion errors for a shape. Built-in type failure keys are `type.int`, `type.float`, `type.bool`, and `type.list`. Custom coercers can return a default failure and Sire resolves it with the registered type name, for example `type.slug`.
 
 ```php
 <?php
@@ -251,7 +251,7 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `messages()` to override many type failure messages.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Return a `Duon\Sire\Failure` when a coercer cannot produce a valid value.
+Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Return `Failure::invalid()` when a coercer cannot produce a valid value. Use `Failure::key()` only when one coercer has multiple distinct failure modes.
 
 ```php
 <?php
@@ -290,7 +290,7 @@ $shape
                     return new Coercion(
                         $pristine,
                         $pristine,
-                        new Failure('type.slug', fallback: 'Invalid slug'),
+                        Failure::invalid(fallback: 'Invalid slug'),
                     );
                 }
 
