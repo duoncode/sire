@@ -6,18 +6,21 @@ namespace Duon\Sire\Validator;
 
 use Duon\Sire\Contract;
 use Duon\Sire\DslSplitter;
+use Duon\Sire\Validation;
 use Override;
 
 /** @api */
 final class Allowed implements Contract\Validator
 {
-	public string $message = 'Invalid value';
+	public string $message {
+		get => 'Invalid value';
+	}
 
 	#[Override]
-	public function validate(Contract\Value $value, string ...$args): bool
+	public function validate(Contract\Value $value, string ...$args): Contract\Validation
 	{
 		$allowed = DslSplitter::split($args[0] ?? '', ',');
 
-		return in_array($value->value, $allowed, true);
+		return Validation::from(in_array($value->value, $allowed, true));
 	}
 }

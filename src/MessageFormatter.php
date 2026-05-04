@@ -12,28 +12,52 @@ final readonly class MessageFormatter
 		private array $messages,
 	) {}
 
-	/** Message templates receive label, field, pristine value, then failure arguments. */
+	/**
+	 * Message templates receive label, field, pristine value, then failure or validator arguments.
+	 *
+	 * @param list<mixed> $args
+	 */
 	public function format(
 		Failure $failure,
 		string $label,
 		string $field,
 		mixed $pristine,
 		?string $defaultKey = null,
+		string $fallback = 'Invalid value',
+		array $args = [],
 	): string {
-		$template = null;
+		$template = $this->template($failure, $defaultKey, $fallback);
+		$args = $failure->args === [] ? $args : $failure->args;
 
-		if ($failure->key !== '') {
-			$template = $this->messages[$failure->key] ?? null;
+		return self::render($template, $label, $field, $pristine, $args);
+	}
+
+	private function template(Failure $failure, ?string $defaultKey, string $fallback): string
+	{
+		if ($failure->key !== '' && array_key_exists($failure->key, $this->messages)) {
+			return $this->messages[$failure->key];
 		}
 
-		if ($template === null && $defaultKey !== null) {
-			$template = $this->messages[$defaultKey] ?? null;
+		if ($defaultKey !== null && array_key_exists($defaultKey, $this->messages)) {
+			return $this->messages[$defaultKey];
 		}
 
-		$template ??= $failure->fallback ?? 'Invalid value';
+		return $failure->fallback ?? $fallback;
+	}
 
+	/** @param list<mixed> $args */
+	private static function render(
+		string $template,
+		string $label,
+		string $field,
+		mixed $pristine,
+		array $args,
+	): string {
 		if (self::usesNamedTemplate($template)) {
-			return self::formatNamed($template, $label, $field, $pristine, $failure->args);
+			return self::renderNamed(
+				$template,
+				self::placeholders($label, $field, $pristine, $args),
+			);
 		}
 
 		return sprintf(
@@ -41,79 +65,51 @@ final readonly class MessageFormatter
 			$label,
 			$field,
 			self::stringify($pristine),
-			...$failure->args,
+			...$args,
 		);
 	}
 
-	/** @param list<mixed> $args */
-	private static function formatNamed(
-		string $template,
-		string $label,
-		string $field,
-		mixed $pristine,
-		array $args,
-	): string {
-		$formatted = preg_replace_callback(
+	/** @param array<string, string> $values */
+	private static function renderNamed(string $template, array $values): string
+	{
+		$rendered = preg_replace_callback(
 			'/{{|}}|{([^{}]+)}/',
-			static function (array $matches) use ($label, $field, $pristine, $args): string {
+			static function (array $matches) use ($values): string {
 				$token = $matches[0];
 
 				return match ($token) {
 					'{{' => '{',
 					'}}' => '}',
-					default => self::placeholder(
-						$matches[1] ?? '',
-						$token,
-						$label,
-						$field,
-						$pristine,
-						$args,
-					),
+					default => $values[$matches[1] ?? ''] ?? $token,
 				};
 			},
 			$template,
 		);
 
-		return $formatted ?? $template;
+		return $rendered ?? $template;
 	}
 
-	/** @param list<mixed> $args */
-	private static function placeholder(
-		string $name,
-		string $text,
+	/**
+	 * @param list<mixed> $args
+	 * @return array<string, string>
+	 */
+	private static function placeholders(
 		string $label,
 		string $field,
 		mixed $pristine,
 		array $args,
-	): string {
-		if ($name === 'label') {
-			return $label;
+	): array {
+		$values = [
+			'label' => $label,
+			'field' => $field,
+			'value' => self::stringify($pristine),
+		];
+
+		foreach ($args as $index => $arg) {
+			$values['arg' . ($index + 1)] = self::stringify($arg);
 		}
 
-		if ($name === 'field') {
-			return $field;
-		}
-
-		if ($name === 'value') {
-			return self::stringify($pristine);
-		}
-
-		$index = self::argumentIndex($name);
-
-		if ($index !== null && array_key_exists($index, $args)) {
-			return self::stringify($args[$index]);
-		}
-
-		return $text;
-	}
-
-	private static function argumentIndex(string $name): ?int
-	{
-		if (preg_match('/^arg([1-9][0-9]*)$/', $name, $matches) !== 1) {
-			return null;
-		}
-
-		return (int) $matches[1] - 1;
+		return $values;
 	}
 
 	private static function stringify(mixed $value): string

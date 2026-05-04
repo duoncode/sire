@@ -14,6 +14,7 @@ use Duon\Sire\Failure;
 use Duon\Sire\Result;
 use Duon\Sire\Review;
 use Duon\Sire\Shape;
+use Duon\Sire\Validation;
 use Duon\Sire\ValidatorRegistry;
 use Duon\Sire\Violation;
 use Override;
@@ -85,6 +86,28 @@ class ShapeTest extends TestCase
 
 		$this->assertFalse($result->isValid());
 		$this->assertSame('Enabled must be yes or no', $result->map()['enabled'][0]);
+	}
+
+	public function testCustomValidatorMessage(): void
+	{
+		$shape = new Shape()->message('validator.required', '{label} is mandatory');
+		$shape->add('name', 'text', 'required')->label('Name');
+
+		$result = $shape->validate(['name' => '']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Name is mandatory', $result->map()['name'][0]);
+	}
+
+	public function testCustomValidatorMessageWithArgs(): void
+	{
+		$shape = new Shape()->message('validator.min', '{label} must be at least {arg1}, got {value}');
+		$shape->add('age', 'int', 'min:18')->label('Age');
+
+		$result = $shape->validate(['age' => '12']);
+
+		$this->assertFalse($result->isValid());
+		$this->assertSame('Age must be at least 18, got 12', $result->map()['age'][0]);
 	}
 
 	public function testTypeFloat(): void
@@ -325,6 +348,10 @@ class ShapeTest extends TestCase
 		$shape = new Shape()->type(
 			'slug',
 			new class implements Coercer {
+				public string $message {
+					get => 'Invalid slug';
+				}
+
 				#[Override]
 				public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 				{
@@ -332,7 +359,7 @@ class ShapeTest extends TestCase
 						return new Coercion(
 							$pristine,
 							$pristine,
-							Failure::invalid(fallback: 'Invalid slug'),
+							Failure::invalid(),
 						);
 					}
 
@@ -356,13 +383,17 @@ class ShapeTest extends TestCase
 			->type(
 				'slug',
 				new class implements Coercer {
+					public string $message {
+						get => 'Invalid slug';
+					}
+
 					#[Override]
 					public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 					{
 						return new Coercion(
 							$pristine,
 							$pristine,
-							Failure::invalid(fallback: 'Invalid slug'),
+							Failure::invalid(),
 						);
 					}
 				},
@@ -379,6 +410,10 @@ class ShapeTest extends TestCase
 	{
 		$registry = new CoercerRegistry([
 			'upper' => new class implements Coercer {
+				public string $message {
+					get => 'Invalid value';
+				}
+
 				#[Override]
 				public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 				{
@@ -997,14 +1032,16 @@ class ShapeTest extends TestCase
 	private static function startsWithValidator(): Validator
 	{
 		return new class implements Validator {
-			public string $message = 'Must start with %4$s';
+			public string $message {
+				get => 'Must start with %4$s';
+			}
 
 			#[Override]
-			public function validate(Value $value, string ...$args): bool
+			public function validate(Value $value, string ...$args): \Duon\Sire\Contract\Validation
 			{
 				$prefix = $args[0] ?? '';
 
-				return str_starts_with((string) $value->value, $prefix);
+				return Validation::from(str_starts_with((string) $value->value, $prefix));
 			}
 		};
 	}

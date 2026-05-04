@@ -102,26 +102,9 @@ final class Config
 		);
 	}
 
-	/** @return array<string, string> */
-	private static function defaultMessages(): array
-	{
-		return [
-			'type.bool' => 'Invalid boolean',
-			'type.float' => 'Invalid number',
-			'type.int' => 'Invalid number',
-			'type.list' => 'Invalid list',
-		];
-	}
-
-	/** @return array<string, string> */
-	private function resolvedMessages(): array
-	{
-		return array_replace(self::defaultMessages(), $this->messages);
-	}
-
 	private function messageFormatter(): MessageFormatter
 	{
-		return new MessageFormatter($this->resolvedMessages());
+		return new MessageFormatter($this->messages);
 	}
 
 	private function resolvedValidatorRegistry(): Contract\ValidatorRegistry

@@ -9,5 +9,5 @@ interface Validator
 {
 	public string $message { get; }
 
-	public function validate(Value $value, string ...$args): bool;
+	public function validate(Value $value, string ...$args): Validation;
 }

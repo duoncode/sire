@@ -125,9 +125,9 @@ The `Result` object is the primary output of validation. Use it as your source o
 
 `Result` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
 
-## Customize type messages
+## Customize messages
 
-Use `message()` or `messages()` to override type coercion errors for a shape. Built-in type failure keys are `type.int`, `type.float`, `type.bool`, and `type.list`. Custom coercers can return a default failure and Sire resolves it with the registered type name, for example `type.slug`.
+Use `message()` or `messages()` to override coercion and validator errors for a shape. Built-in type keys are `type.int`, `type.float`, `type.bool`, and `type.list`. Built-in validator keys use the validator name, for example `validator.required`, `validator.email`, `validator.min`, and `validator.max`. Custom coercers and validators use their registered names, for example `type.slug` and `validator.starts_with`.
 
 ```php
 <?php
@@ -138,22 +138,23 @@ $shape = (new Shape())
     ->message('type.int', '{label} must be a whole number')
     ->messages([
         'type.bool' => '{label} must be yes or no',
+        'validator.required' => '{label} is required',
     ]);
 
-$shape->add('age', 'int')->label('Age');
+$shape->add('age', 'int', 'required')->label('Age');
 $shape->add('enabled', 'bool')->label('Enabled');
 ```
 
-Type message templates can use named placeholders:
+Message templates can use named placeholders:
 
 - `{label}` is the rule label, or the field name when no label is set.
 - `{field}` is the field name.
-- `{value}` is the pristine value that reached coercion.
-- `{arg1}`, `{arg2}`, and later values come from custom `Failure` arguments.
+- `{value}` is the pristine value that reached validation.
+- `{arg1}`, `{arg2}`, and later values come from custom `Failure` arguments for coercers or validator DSL arguments for validators.
 
-Use `{{` and `}}` for literal braces. Do not mix named and `sprintf()` placeholders in one template. Validator messages still use each validator's `sprintf()`-style `message` property.
+Use `{{` and `}}` for literal braces. Do not mix named and `sprintf()` placeholders in one template. Existing `sprintf()` templates still work, with `%1$s`, `%2$s`, `%3$s`, and `%4$s` mapping to `{label}`, `{field}`, `{value}`, and `{arg1}`.
 
-Existing `sprintf()` type message templates still work, with `%1$s`, `%2$s`, `%3$s`, and `%4$s` mapping to `{label}`, `{field}`, `{value}`, and `{arg1}`.
+When no shape-level message is configured, Sire uses the coercer or validator's `message` property.
 
 ## Review validated values
 
@@ -249,11 +250,11 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `validators()` to replace the validator registry.
 - Use `type()` to add or replace one base type with its coercer.
 - Use `types()` to replace the coercer registry.
-- Use `message()` to override one type failure message.
-- Use `messages()` to override many type failure messages.
+- Use `message()` to override one type or validator message.
+- Use `messages()` to override many type or validator messages.
 - Use `validatorParser()` if you need a different DSL split strategy.
 
-Custom validators implement `Duon\Sire\Contract\Validator` and receive `Duon\Sire\Contract\Value`. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer` and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Return `Failure::invalid()` when a coercer cannot produce a valid value. Use `Failure::key()` only when one coercer has multiple distinct failure modes.
+Custom validators implement `Duon\Sire\Contract\Validator`, expose a default `message`, and return `Duon\Sire\Contract\Validation`; use `Duon\Sire\Validation` when the default immutable result object is enough. Validators skip empty values by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a validator must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer`, expose a default `message`, and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Return `Failure::invalid()` when a coercer or validator cannot produce a valid value. Use `Failure::key()` only when one coercer or validator has multiple distinct failure modes.
 
 ```php
 <?php
@@ -262,18 +263,23 @@ use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Duon\Sire\Shape;
+use Duon\Sire\Validation;
 use Override;
 
 $shape = new Shape();
 $shape->validator(
     'starts_with',
     new class implements Contract\Validator {
-        public string $message = 'Must start with %4$s';
+        public string $message {
+            get => 'Must start with {arg1}';
+        }
 
         #[Override]
-        public function validate(Contract\Value $value, string ...$args): bool
+        public function validate(Contract\Value $value, string ...$args): Contract\Validation
         {
-            return str_starts_with((string) $value->value, $args[0] ?? '');
+            return Validation::from(
+                str_starts_with((string) $value->value, $args[0] ?? ''),
+            );
         }
     },
 );
@@ -283,6 +289,10 @@ $shape
     ->type(
         'slug',
         new class implements Contract\Coercer {
+            public string $message {
+                get => 'Invalid slug';
+            }
+
             #[Override]
             public function coerce(mixed $pristine): Contract\Coercion
             {
@@ -292,7 +302,7 @@ $shape
                     return new Coercion(
                         $pristine,
                         $pristine,
-                        Failure::invalid(fallback: 'Invalid slug'),
+                        Failure::invalid(),
                     );
                 }
 

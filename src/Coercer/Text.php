@@ -8,8 +8,13 @@ use Duon\Sire\Coercion;
 use Duon\Sire\Contract;
 use Override;
 
+/** @api */
 final class Text implements Contract\Coercer
 {
+	public string $message {
+		get => 'Invalid text';
+	}
+
 	#[Override]
 	public function coerce(mixed $pristine): Contract\Coercion
 	{

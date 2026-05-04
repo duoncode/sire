@@ -26,6 +26,6 @@ class ValidatorTest extends TestCase
 			public mixed $pristine = 'rawvalue';
 		};
 
-		$this->assertTrue($validator->validate($value));
+		$this->assertNull($validator->validate($value)->failure);
 	}
 }

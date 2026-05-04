@@ -6,6 +6,7 @@ namespace Duon\Sire\Tests;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Contract\Value;
+use Duon\Sire\Validation;
 use Duon\Sire\ValidatorRegistry;
 use Override;
 use RuntimeException;
@@ -89,12 +90,14 @@ class ValidatorRegistryTest extends TestCase
 	private static function stringValidator(): Contract\Validator
 	{
 		return new class implements Contract\Validator {
-			public string $message = 'Must match';
+			public string $message {
+				get => 'Must match';
+			}
 
 			#[Override]
-			public function validate(Value $value, string ...$args): bool
+			public function validate(Value $value, string ...$args): Contract\Validation
 			{
-				return is_string($value->value);
+				return Validation::from(is_string($value->value));
 			}
 		};
 	}

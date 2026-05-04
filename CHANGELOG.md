@@ -6,8 +6,10 @@
 
 - Made `Shape` and `Value` final; custom shapes now need composition through `Contract\Shape` instead of subclassing.
 - Removed the closure-backed `Validator` adapter; custom validators now implement `Contract\Validator`.
+- Changed `Contract\Validator::validate()` to return `Contract\Validation` instead of `bool`.
 - Removed coercion errors from `Contract\Value`; custom coercers now return `Contract\Coercion` with direct `value`, `pristine`, and `failure` properties.
 - Changed `Contract\Coercer::coerce()` to receive only the pristine value.
+- Added a required `message` property to `Contract\Coercer`.
 - Changed `CoercerRegistry::withDefaults()` to no longer accept message configuration.
 - Removed `skipEmpty` from `Contract\Validator`; regular validators now skip empty values and validators that must run on empty values implement `Contract\ValidatesEmpty`.
 - Replaced `Shape` constructor configuration, including `list`, `keepUnknown`, `title`, registry, parser, and `langs` arguments, with fluent configuration methods.
@@ -22,10 +24,10 @@
 - Added `Shape::review()` callbacks with `Review` for post-validation checks after successful normal validation.
 - Added `Rule::prepare()` to normalize present field values before type casting and nested shape validation.
 - Added quoted and escaped arguments for validator DSL definitions.
-- Added `Contract\Validator`, `Contract\ValidatesEmpty`, `Contract\Coercion`, and built-in validator classes.
-- Added `Shape::message()` and `Shape::messages()` for type coercion error messages.
+- Added `Contract\Validator`, `Contract\ValidatesEmpty`, `Contract\Coercion`, `Contract\Validation`, and built-in validator classes.
+- Added `Shape::message()` and `Shape::messages()` for coercion and validator error messages.
 - Added structured coercion failures through `Failure` and central type message formatting based on the registered type name.
-- Added named placeholders such as `{label}`, `{field}`, `{value}`, and `{arg1}` for type message templates.
+- Added named placeholders such as `{label}`, `{field}`, `{value}`, and `{arg1}` for coercion and validator message templates.
 
 ## [0.3.0](https://github.com/duoncode/sire/releases/tag/0.3.0) (2026-02-21)
 

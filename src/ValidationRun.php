@@ -83,16 +83,20 @@ final class ValidationRun
 			return;
 		}
 
-		if (!$validator->validate($value, ...$validatorArgs)) {
+		$validation = $validator->validate($value, ...$validatorArgs);
+
+		if ($validation->failure !== null) {
 			$this->errors->add(
 				$rule->field,
 				$rule->name(),
-				sprintf(
-					$validator->message,
+				$this->shape->messageFormatter->format(
+					$validation->failure,
 					$rule->name(),
 					$rule->field,
-					print_r($value->pristine, true),
-					...$validatorArgs,
+					$value->pristine,
+					'validator.' . $validatorName,
+					$validator->message,
+					$validatorArgs,
 				),
 				$listIndex,
 				$this->shape->title,
@@ -194,7 +198,7 @@ final class ValidationRun
 		}
 
 		$coercion = $coercer->coerce($value);
-		$error = $this->formatCoercionFailure($coercion, $rule);
+		$error = $this->formatCoercionFailure($coercion, $rule, $coercer);
 
 		return new ReadValue(
 			new \Duon\Sire\Value($coercion->value, $coercion->pristine),
@@ -202,8 +206,11 @@ final class ValidationRun
 		);
 	}
 
-	private function formatCoercionFailure(Contract\Coercion $coercion, Rule $rule): ?string
-	{
+	private function formatCoercionFailure(
+		Contract\Coercion $coercion,
+		Rule $rule,
+		Contract\Coercer $coercer,
+	): ?string {
 		if ($coercion->failure === null) {
 			return null;
 		}
@@ -214,6 +221,7 @@ final class ValidationRun
 			$rule->field,
 			$coercion->pristine,
 			'type.' . $rule->type(),
+			$coercer->message,
 		);
 	}
 

@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace Duon\Sire\Validator;
 
 use Duon\Sire\Contract;
+use Duon\Sire\Validation;
 use Override;
 
 /** @api */
 final class MinLength implements Contract\Validator
 {
-	public string $message = 'Shorter than the minimum length of %4$s characters';
+	public string $message {
+		get => 'Shorter than the minimum length of %4$s characters';
+	}
 
 	#[Override]
-	public function validate(Contract\Value $value, string ...$args): bool
+	public function validate(Contract\Value $value, string ...$args): Contract\Validation
 	{
-		return strlen($value->value) >= (int) ($args[0] ?? null);
+		return Validation::from(strlen($value->value) >= (int) ($args[0] ?? null));
 	}
 }

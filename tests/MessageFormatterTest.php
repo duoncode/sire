@@ -25,6 +25,25 @@ class MessageFormatterTest extends TestCase
 		$this->assertSame('Age/age/raw/extra', $message);
 	}
 
+	public function testFormatsDefaultArguments(): void
+	{
+		$formatter = new MessageFormatter([
+			'validator.min' => '{label} must be at least {arg1}',
+		]);
+
+		$message = $formatter->format(
+			Failure::invalid(),
+			'Age',
+			'age',
+			'raw',
+			'validator.min',
+			'Fallback',
+			['18'],
+		);
+
+		$this->assertSame('Age must be at least 18', $message);
+	}
+
 	public function testFormatsNamedMessage(): void
 	{
 		$formatter = new MessageFormatter([

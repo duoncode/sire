@@ -9,8 +9,13 @@ use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Override;
 
-final readonly class Sequence implements Contract\Coercer
+/** @api */
+final class Sequence implements Contract\Coercer
 {
+	public string $message {
+		get => 'Invalid list';
+	}
+
 	#[Override]
 	public function coerce(mixed $pristine): Contract\Coercion
 	{

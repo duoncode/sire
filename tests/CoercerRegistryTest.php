@@ -34,7 +34,10 @@ class CoercerRegistryTest extends TestCase
 
 		$this->assertInstanceOf(Coercer::class, $registry->get('text'));
 		$this->assertInstanceOf(Coercer::class, $registry->get('bool'));
-		$this->assertInstanceOf(Coercer::class, $registry->get('int'));
+		$integer = $registry->get('int');
+
+		$this->assertInstanceOf(Coercer::class, $integer);
+		$this->assertSame('Invalid number', $integer->message);
 		$this->assertInstanceOf(Coercer::class, $registry->get('float'));
 		$this->assertInstanceOf(Coercer::class, $registry->get('list'));
 	}
@@ -81,6 +84,10 @@ class CoercerRegistryTest extends TestCase
 	private static function coercer(Closure $callback): Coercer
 	{
 		return new class($callback) implements Coercer {
+			public string $message {
+				get => 'Invalid value';
+			}
+
 			/** @param Closure(mixed): mixed $callback */
 			public function __construct(
 				private readonly Closure $callback,

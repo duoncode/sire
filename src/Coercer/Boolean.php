@@ -9,8 +9,13 @@ use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Override;
 
-final readonly class Boolean implements Contract\Coercer
+/** @api */
+final class Boolean implements Contract\Coercer
 {
+	public string $message {
+		get => 'Invalid boolean';
+	}
+
 	#[Override]
 	public function coerce(mixed $pristine): Contract\Coercion
 	{
