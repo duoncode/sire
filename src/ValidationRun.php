@@ -151,7 +151,7 @@ final class ValidationRun
 			$field = (string) $field;
 			$rule = $this->shape->rules[$field] ?? null;
 			$value = $rule instanceof Rule
-				? $this->readRuleValue($field, $rule, $value, $listIndex)
+				? $this->readRuleValue($field, $rule, $value, $data, $listIndex)
 				: $this->readExtraValue($field, $value, $listIndex);
 
 			if ($value !== null) {
@@ -162,9 +162,15 @@ final class ValidationRun
 		return $values;
 	}
 
-	private function readRuleValue(string $field, Rule $rule, mixed $value, ?int $listIndex): Value
-	{
-		$read = $this->readKnownValue($rule, $value);
+	/** @param array<string, mixed> $data */
+	private function readRuleValue(
+		string $field,
+		Rule $rule,
+		mixed $value,
+		array $data,
+		?int $listIndex,
+	): Value {
+		$read = $this->readKnownValue($rule, $value, $data);
 
 		if ($read->nestedError !== null) {
 			$this->errors->addNested($field, $read->nestedError, $listIndex);
@@ -204,9 +210,10 @@ final class ValidationRun
 		return null;
 	}
 
-	private function readKnownValue(Rule $rule, mixed $value): ReadValue
+	/** @param array<string, mixed> $data */
+	private function readKnownValue(Rule $rule, mixed $value, array $data): ReadValue
 	{
-		$value = $rule->applyPreparation($value);
+		$value = $rule->applyPreparation($value, $data);
 		$type = $rule->type();
 
 		if ($type === 'shape') {

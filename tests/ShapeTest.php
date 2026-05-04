@@ -844,6 +844,24 @@ class ShapeTest extends TestCase
 		$this->assertSame('42', $result->pristineValues()['age']);
 	}
 
+	public function testRulePreparationReceivesInputData(): void
+	{
+		$shape = new Shape();
+		$shape->add('slug', 'text')->prepare(
+			static fn(mixed $value, array $data): string => $value !== ''
+				? (string) $value
+				: strtolower((string) $data['title']),
+		);
+
+		$result = $shape->validate([
+			'title' => 'Hello',
+			'slug' => '',
+		]);
+
+		$this->assertTrue($result->isValid());
+		$this->assertSame('hello', $result->values()['slug']);
+	}
+
 	public function testRulePreparationRunsBeforeNestedShapeValidation(): void
 	{
 		$nested = new Shape();

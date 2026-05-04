@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
-use Closure;
-
 /** @api */
 final class Rule
 {
 	private ?string $label = null;
 
-	/** @var list<Closure(mixed): mixed> */
+	/** @var list<callable> */
 	private array $preparers = [];
 
 	/** @var array<string, string> */
@@ -31,8 +29,8 @@ final class Rule
 		return $this;
 	}
 
-	/** @param Closure(mixed): mixed $callback */
-	public function prepare(Closure $callback): static
+	/** @param callable $callback */
+	public function prepare(callable $callback): static
 	{
 		$this->preparers[] = $callback;
 
@@ -72,10 +70,11 @@ final class Rule
 		return is_string($this->type) ? $this->type : 'shape';
 	}
 
-	public function applyPreparation(mixed $value): mixed
+	/** @param array<string, mixed> $data */
+	public function applyPreparation(mixed $value, array $data): mixed
 	{
 		foreach ($this->preparers as $prepare) {
-			$value = $prepare($value);
+			$value = $prepare($value, $data);
 		}
 
 		return $value;
