@@ -19,6 +19,9 @@
 - Removed `Shape` subclass hooks and mutable run-state access, including `rules()`, protected `review()`, `addError()`, `toSubValues()`, `$errorList`, and `$errorMap`.
 - Changed the `in` validator to use strict comparisons, so values must match allowed values without PHP loose coercion.
 - Changed built-in default error messages to include labels and named placeholders.
+- Changed missing fields to fail validation by default; use `Rule::optional()` to omit them or `Rule::default()` to fill them.
+- Changed missing boolean fields to no longer default to `false`; use `Rule::default(false)` for checkbox-style defaults.
+- Changed explicit `null` values to fail before coercion unless `Rule::nullable()` is used or preparation returns a non-null value.
 
 ### Added
 
@@ -26,7 +29,8 @@
 - Added the `Extra` enum to control extra input fields with `ignore`, `allow`, and `forbid` modes.
 - Added the `number` type for values that may be integers or floats.
 - Added `Shape::review()` callbacks with `Review` for post-validation checks after successful normal validation.
-- Added `Rule::prepare()` to normalize present field values before type casting and nested shape validation.
+- Added `Rule::prepare()` to normalize present or defaulted field values before type casting and nested shape validation.
+- Added `Rule::optional()`, `Rule::default()`, and `Rule::nullable()` for field presence control.
 - Added `Rule::message()` and `Rule::messages()` for field-specific type and validator messages.
 - Added quoted and escaped arguments for validator DSL definitions.
 - Added `Contract\Validator`, `Contract\ValidatesEmpty`, `Contract\Coercion`, `Contract\Validation`, and built-in validator classes.

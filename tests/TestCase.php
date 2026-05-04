@@ -75,7 +75,7 @@ class TestCase extends BaseTestCase
 		$shape = Shape::list()->title('List Root');
 		$shape->add('int', 'int', 'required');
 		$shape->add('text', 'text', 'required');
-		$shape->add('email', 'text', 'email', 'minlen:10');
+		$shape->add('email', 'text', 'email', 'minlen:10')->optional();
 		$shape->add(
 			'single_shape',
 			new SubShape(title: 'Single Sub'),

@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Duon\Sire;
 
-use Closure;
-
 /** @api */
 final class Rule
 {
 	private ?string $label = null;
 
-	/** @var list<Closure(mixed): mixed> */
+	/** @var list<callable> */
 	private array $preparers = [];
+
+	private bool $hasDefault = false;
+
+	private mixed $default = null;
+
+	private bool $nullable = false;
+
+	private bool $optional = false;
 
 	/** @var array<string, string> */
 	private array $messages = [];
@@ -31,12 +37,58 @@ final class Rule
 		return $this;
 	}
 
-	/** @param Closure(mixed): mixed $callback */
-	public function prepare(Closure $callback): static
+	/** @param callable $callback */
+	public function prepare(callable $callback): static
 	{
 		$this->preparers[] = $callback;
 
 		return $this;
+	}
+
+	public function default(mixed $value): static
+	{
+		$this->default = $value;
+		$this->hasDefault = true;
+
+		if ($value === null) {
+			$this->nullable();
+		}
+
+		return $this;
+	}
+
+	public function nullable(): static
+	{
+		$this->nullable = true;
+
+		return $this;
+	}
+
+	public function optional(): static
+	{
+		$this->optional = true;
+
+		return $this;
+	}
+
+	public function hasDefault(): bool
+	{
+		return $this->hasDefault;
+	}
+
+	public function defaultValue(): mixed
+	{
+		return $this->default;
+	}
+
+	public function isNullable(): bool
+	{
+		return $this->nullable;
+	}
+
+	public function isOptional(): bool
+	{
+		return $this->optional;
 	}
 
 	public function message(string $key, string $message): static
@@ -72,10 +124,11 @@ final class Rule
 		return is_string($this->type) ? $this->type : 'shape';
 	}
 
-	public function applyPreparation(mixed $value): mixed
+	/** @param array<string, mixed> $data */
+	public function applyPreparation(mixed $value, array $data): mixed
 	{
 		foreach ($this->preparers as $prepare) {
-			$value = $prepare($value);
+			$value = $prepare($value, $data);
 		}
 
 		return $value;
@@ -85,6 +138,10 @@ final class Rule
 	{
 		if ($key === 'type') {
 			return 'type.' . $this->type();
+		}
+
+		if ($key === 'missing' || $key === 'null') {
+			return $key;
 		}
 
 		if (str_starts_with($key, 'type.') || str_starts_with($key, 'validator.')) {

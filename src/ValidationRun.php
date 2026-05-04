@@ -12,12 +12,18 @@ final class ValidationRun
 {
 	private ErrorBag $errors;
 
+	/** Marks defaulted fields so pristine output can preserve missing input. */
+	private object $missing;
+
 	public function __construct(
 		private readonly ShapeDefinition $shape,
 		private readonly array $data,
 		private readonly int $level,
 	) {
 		$this->errors = new ErrorBag();
+		// Use a unique per-run sentinel instead of null so explicit null input
+		// remains distinguishable from fields filled by defaults.
+		$this->missing = new \stdClass();
 	}
 
 	public function validate(): Result
@@ -151,7 +157,7 @@ final class ValidationRun
 			$field = (string) $field;
 			$rule = $this->shape->rules[$field] ?? null;
 			$value = $rule instanceof Rule
-				? $this->readRuleValue($field, $rule, $value, $listIndex)
+				? $this->readRuleValue($field, $rule, $value, $data, $listIndex)
 				: $this->readExtraValue($field, $value, $listIndex);
 
 			if ($value !== null) {
@@ -162,9 +168,15 @@ final class ValidationRun
 		return $values;
 	}
 
-	private function readRuleValue(string $field, Rule $rule, mixed $value, ?int $listIndex): Value
-	{
-		$read = $this->readKnownValue($rule, $value);
+	/** @param array<string, mixed> $data */
+	private function readRuleValue(
+		string $field,
+		Rule $rule,
+		mixed $value,
+		array $data,
+		?int $listIndex,
+	): Value {
+		$read = $this->readKnownValue($rule, $value, $data);
 
 		if ($read->nestedError !== null) {
 			$this->errors->addNested($field, $read->nestedError, $listIndex);
@@ -182,6 +194,33 @@ final class ValidationRun
 		}
 
 		return $read->value;
+	}
+
+	/** @param array<string, mixed> $data */
+	private function readDefaultValue(
+		string $field,
+		Rule $rule,
+		array $data,
+		?int $listIndex,
+	): Value {
+		$read = $this->readKnownValue($rule, $rule->defaultValue(), $data);
+
+		if ($read->nestedError !== null) {
+			$this->errors->addNested($field, $read->nestedError, $listIndex);
+		}
+
+		if ($read->error !== null) {
+			$this->errors->add(
+				$field,
+				$rule->name(),
+				$read->error,
+				$listIndex,
+				$this->shape->title,
+				$this->level,
+			);
+		}
+
+		return new \Duon\Sire\Value($read->value->value, $this->missing);
 	}
 
 	private function readExtraValue(string $field, mixed $value, ?int $listIndex): ?Value
@@ -204,9 +243,18 @@ final class ValidationRun
 		return null;
 	}
 
-	private function readKnownValue(Rule $rule, mixed $value): ReadValue
+	/** @param array<string, mixed> $data */
+	private function readKnownValue(Rule $rule, mixed $value, array $data): ReadValue
 	{
-		$value = $rule->applyPreparation($value);
+		$value = $rule->applyPreparation($value, $data);
+
+		if ($value === null) {
+			return new ReadValue(
+				new \Duon\Sire\Value(null, null),
+				$rule->isNullable() ? null : $this->formatNullFailure($rule),
+			);
+		}
+
 		$type = $rule->type();
 
 		if ($type === 'shape') {
@@ -240,6 +288,32 @@ final class ValidationRun
 			$value,
 			'extra',
 			'Field "{field}" is not allowed',
+		);
+	}
+
+	private function formatNullFailure(Rule $rule): string
+	{
+		return $this->shape->messageFormatter->format(
+			Failure::key('null'),
+			$rule->name(),
+			$rule->field,
+			null,
+			'null',
+			'{label} must not be null',
+			messages: $rule->messageOverrides(),
+		);
+	}
+
+	private function formatMissingFailure(Rule $rule): string
+	{
+		return $this->shape->messageFormatter->format(
+			Failure::key('missing'),
+			$rule->name(),
+			$rule->field,
+			null,
+			'missing',
+			'{label} is required',
+			messages: $rule->messageOverrides(),
 		);
 	}
 
@@ -300,21 +374,35 @@ final class ValidationRun
 		}
 	}
 
-	/** @param array<string, Value> $values */
-	private function fillMissingFromRules(array $values): array
+	/**
+	 * @param array<string, Value> $values
+	 * @param array<string, mixed> $data
+	 */
+	private function fillMissingFromRules(array $values, array $data, ?int $listIndex = null): array
 	{
 		foreach ($this->shape->rules as $field => $rule) {
 			if (array_key_exists($field, $values)) {
 				continue;
 			}
 
-			if ($rule->type() === 'bool') {
-				$values[$field] = new \Duon\Sire\Value(false, null);
+			if ($rule->hasDefault()) {
+				$values[$field] = $this->readDefaultValue($field, $rule, $data, $listIndex);
 
 				continue;
 			}
 
-			$values[$field] = new \Duon\Sire\Value(null, null);
+			if ($rule->isOptional()) {
+				continue;
+			}
+
+			$this->errors->add(
+				$field,
+				$rule->name(),
+				$this->formatMissingFailure($rule),
+				$listIndex,
+				$this->shape->title,
+				$this->level,
+			);
 		}
 
 		return $values;
@@ -331,7 +419,7 @@ final class ValidationRun
 				/** @var array<string, mixed> $subData */
 				$subData = $item;
 				$subValues = $this->readFromData($subData, $listIndex);
-				$values[] = $this->fillMissingFromRules($subValues);
+				$values[] = $this->fillMissingFromRules($subValues, $subData, $listIndex);
 			}
 
 			return $values;
@@ -339,7 +427,7 @@ final class ValidationRun
 
 		$values = $this->readFromData($data);
 
-		return $this->fillMissingFromRules($values);
+		return $this->fillMissingFromRules($values, $data);
 	}
 
 	/**
@@ -349,6 +437,10 @@ final class ValidationRun
 	private function validateItem(array $values, ?int $listIndex = null): array
 	{
 		foreach ($this->shape->rules as $field => $rule) {
+			if (!array_key_exists($field, $values)) {
+				continue;
+			}
+
 			foreach ($rule->validators as $validator) {
 				$this->validateField(
 					$rule,
@@ -380,9 +472,16 @@ final class ValidationRun
 	 */
 	private function getPristineValues(array $values): array
 	{
-		return array_map(
-			static fn(Value $item): mixed => $item->pristine,
-			$values,
-		);
+		$pristineValues = [];
+
+		foreach ($values as $field => $value) {
+			if ($value->pristine === $this->missing) {
+				continue;
+			}
+
+			$pristineValues[$field] = $value->pristine;
+		}
+
+		return $pristineValues;
 	}
 }

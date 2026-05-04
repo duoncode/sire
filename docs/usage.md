@@ -83,9 +83,72 @@ You can keep commas and colons inside argument values by quoting or escaping the
 
 Sire throws a `ValueError` if a validator definition is malformed, for example for unclosed quotes or a missing validator name.
 
+## Control field presence
+
+Fields are required by default. A missing field reports a validation error and is omitted from `values()` and `pristineValues()`.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('title', 'text')->label('Title');
+
+$result = $shape->validate([]);
+
+var_dump($result->map()['title'][0]); // "Title is required"
+```
+
+Use `optional()` when a missing field should have no effect on validation output.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('subtitle', 'text')->optional();
+
+$result = $shape->validate([]);
+
+var_dump($result->values()); // []
+```
+
+Use `default()` when a missing field should be filled. Defaults run through preparation, coercion, and validators. Present input wins over the default. Defaulted fields stay omitted from `pristineValues()` because they were missing from the input.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('status', 'text')->default('draft');
+$shape->add('count', 'int')->default('0');
+
+$result = $shape->validate([]);
+
+var_dump($result->values()); // ['status' => 'draft', 'count' => 0]
+```
+
+Use `nullable()` when explicit `null` should be accepted. `default(null)` implies `nullable()`.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('discount_code', 'text', 'maxlen:64')
+    ->default('')
+    ->nullable();
+```
+
+The `required` validator checks the final normalized value. Combine it with defaults or nullable fields when a field may be accepted structurally but must still contain a non-empty value after normalization.
+
 ## Prepare input before validation
 
-Use `Rule::prepare()` when a present field value needs normalization before Sire casts or validates it. Prepare callbacks run in registration order, only for known fields that are present in the input.
+Use `Rule::prepare()` when a field value needs normalization before Sire casts or validates it. Prepare callbacks run in registration order for present fields and for fields filled by `default()`. They do not run for missing `optional()` fields or missing fields that report an error.
 
 ```php
 <?php
@@ -102,6 +165,30 @@ $result = $shape->validate(['age' => ' 21 ']);
 var_dump($result->values()['age']); // 21
 ```
 
+Prepare callbacks receive the current field value and the raw input data for the current shape item. This lets you derive a value from another field before validation.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('title', 'text');
+$shape->add('slug', 'text', 'required')
+    ->default('')
+    ->prepare(static function (mixed $value, array $data): string {
+        if ($value !== '') {
+            return (string) $value;
+        }
+
+        return strtolower(str_replace(' ', '-', (string) $data['title']));
+    });
+
+$result = $shape->validate(['title' => 'Hello World']);
+
+var_dump($result->values()['slug']); // "hello-world"
+```
+
 Prepare callbacks also run before nested shape validation. This is useful when external input needs a small shape adjustment before a nested shape sees it.
 
 ```php
@@ -110,7 +197,7 @@ Prepare callbacks also run before nested shape validation. This is useful when e
 use Duon\Sire\Shape;
 
 $profile = new Shape();
-$profile->add('bio', 'text');
+$profile->add('bio', 'text')->optional();
 
 $user = new Shape();
 $user
@@ -130,13 +217,13 @@ The `Result` object is the primary output of validation. Use it as your source o
 - `errors(grouped: true)` groups errors by shape section.
 - `map()` returns a field-to-messages map.
 - `values()` returns coerced values.
-- `pristineValues()` returns values before coercion. If `Rule::prepare()` is used, these are the prepared values, not the original raw input.
+- `pristineValues()` returns incoming values before coercion. If `Rule::prepare()` is used, these are the prepared values, not the original raw input. Missing optional fields and defaulted fields are omitted.
 
 `Result` and `Violation` implement `JsonSerializable`, so you can return them directly from JSON APIs.
 
 ## Customize messages
 
-Use `message()` or `messages()` to override coercion and validator errors for a shape. Built-in type keys are `type.int`, `type.float`, `type.number`, `type.bool`, and `type.list`. Built-in validator keys use the validator name, for example `validator.required`, `validator.email`, `validator.min`, and `validator.max`. Custom coercers and validators use their registered names, for example `type.slug` and `validator.starts_with`.
+Use `message()` or `messages()` to override coercion and validator errors for a shape. Built-in type keys are `type.int`, `type.float`, `type.number`, `type.bool`, and `type.list`. Field presence keys are `missing` and `null`. Built-in validator keys use the validator name, for example `validator.required`, `validator.email`, `validator.min`, and `validator.max`. Custom coercers and validators use their registered names, for example `type.slug` and `validator.starts_with`.
 
 ```php
 <?php
@@ -147,6 +234,7 @@ $shape = (new Shape())
     ->message('type.int', '{label} must be a whole number')
     ->messages([
         'type.bool' => '{label} must be yes or no',
+        'missing' => '{label} is required',
         'validator.required' => '{label} is required',
     ]);
 
@@ -171,7 +259,7 @@ $shape
     ]);
 ```
 
-In rule messages, `type` means the rule's own type and validator names such as `max`, `required`, or `email` mean that validator. Explicit keys such as `type.int` and `validator.max` also work.
+In rule messages, `type` means the rule's own type, `missing` and `null` mean field presence errors, and validator names such as `max`, `required`, or `email` mean that validator. Explicit keys such as `type.int` and `validator.max` also work.
 
 Message templates can use named placeholders:
 
