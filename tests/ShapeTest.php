@@ -325,6 +325,8 @@ class ShapeTest extends TestCase
 		$shape = new Shape()->type(
 			'slug',
 			new class implements Coercer {
+				public string $message = 'Invalid slug';
+
 				#[Override]
 				public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 				{
@@ -332,7 +334,7 @@ class ShapeTest extends TestCase
 						return new Coercion(
 							$pristine,
 							$pristine,
-							Failure::invalid(fallback: 'Invalid slug'),
+							Failure::invalid(),
 						);
 					}
 
@@ -356,13 +358,15 @@ class ShapeTest extends TestCase
 			->type(
 				'slug',
 				new class implements Coercer {
+					public string $message = 'Invalid slug';
+
 					#[Override]
 					public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 					{
 						return new Coercion(
 							$pristine,
 							$pristine,
-							Failure::invalid(fallback: 'Invalid slug'),
+							Failure::invalid(),
 						);
 					}
 				},
@@ -379,6 +383,8 @@ class ShapeTest extends TestCase
 	{
 		$registry = new CoercerRegistry([
 			'upper' => new class implements Coercer {
+				public string $message = 'Invalid value';
+
 				#[Override]
 				public function coerce(mixed $pristine): \Duon\Sire\Contract\Coercion
 				{

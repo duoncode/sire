@@ -19,6 +19,7 @@ final readonly class MessageFormatter
 		string $field,
 		mixed $pristine,
 		?string $defaultKey = null,
+		string $fallback = 'Invalid value',
 	): string {
 		$template = null;
 
@@ -30,7 +31,7 @@ final readonly class MessageFormatter
 			$template = $this->messages[$defaultKey] ?? null;
 		}
 
-		$template ??= $failure->fallback ?? 'Invalid value';
+		$template ??= $failure->fallback ?? $fallback;
 
 		return $this->formatTemplate($template, $label, $field, $pristine, $failure->args);
 	}

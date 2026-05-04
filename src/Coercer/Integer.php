@@ -9,8 +9,11 @@ use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Override;
 
-final readonly class Integer implements Contract\Coercer
+/** @api */
+final class Integer implements Contract\Coercer
 {
+	public string $message = 'Invalid number';
+
 	#[Override]
 	public function coerce(mixed $pristine): Contract\Coercion
 	{
