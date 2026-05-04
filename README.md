@@ -10,6 +10,8 @@ A PHP validation library with a shape-first API and a compact validator DSL.
 
 > **Note:** This is a preview feature currently under active development.
 
+Sire defines required fields by default. Use rule-level `optional()`, `default()`, and `nullable()` when a field can be absent, filled, or explicitly `null`.
+
 ## Installation
 
 ```bash
