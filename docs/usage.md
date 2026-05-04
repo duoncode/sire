@@ -115,7 +115,7 @@ $result = $shape->validate([]);
 var_dump($result->values()); // []
 ```
 
-Use `default()` when a missing field should be filled. Defaults run through preparation, coercion, and validators. Present input wins over the default. Defaulted fields stay omitted from `pristineValues()` because they were missing from the input.
+Use `default()` when an empty field should be filled. By default, only missing input counts as empty. Defaults run through preparation, coercion, validators, and finalizers. Present non-empty input wins over the default. Defaulted fields stay omitted from `pristineValues()` because the effective input was empty.
 
 ```php
 <?php
@@ -131,7 +131,35 @@ $result = $shape->validate([]);
 var_dump($result->values()); // ['status' => 'draft', 'count' => 0]
 ```
 
-Use `nullable()` when explicit `null` should be accepted. `default(null)` implies `nullable()`.
+Use `empty()` to configure which raw input states count as empty for a rule. Empty values are handled before preparation. They use the default when one exists, are omitted when the rule is optional, or report the normal missing-field error otherwise. The enum is named `EmptyValue` because `empty` is a PHP language construct.
+
+```php
+<?php
+
+use Duon\Sire\EmptyValue;
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape->add('status', 'text')
+    ->empty(EmptyValue::Missing, EmptyValue::Null, EmptyValue::Whitespace)
+    ->default('draft');
+
+var_dump($shape->validate([])->values()['status']); // "draft"
+var_dump($shape->validate(['status' => null])->values()['status']); // "draft"
+var_dump($shape->validate(['status' => '  '])->values()['status']); // "draft"
+```
+
+`empty()` replaces the rule's empty-value set. Include `EmptyValue::Missing` when a default should still apply to missing input.
+
+- `EmptyValue::Missing` matches an absent field.
+- `EmptyValue::Null` matches explicit `null`.
+- `EmptyValue::String` matches exact `''`.
+- `EmptyValue::Whitespace` matches strings where `trim($value) === ''`, including `''`.
+- `EmptyValue::List` matches exact `[]`.
+
+You can pass enum cases or strings such as `'null'` and `'whitespace'`.
+
+Use `nullable()` when explicit `null` should be accepted instead of treated as empty. `default(null)` implies `nullable()`.
 
 ```php
 <?php
@@ -145,6 +173,8 @@ $shape->add('discount_code', 'text', 'maxlen:64')
 ```
 
 The `required` validator checks the final normalized value. Combine it with defaults or nullable fields when a field may be accepted structurally but must still contain a non-empty value after normalization.
+
+For each field, Sire applies empty handling first, then `default()` or `optional()` if needed, then `prepare()`, nullability, coercion or nested validation, field validators, `finalize()`, and finally review callbacks.
 
 ## Prepare input before validation
 

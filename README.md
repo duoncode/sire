@@ -10,7 +10,7 @@ A PHP validation library with a shape-first API and a compact validator DSL.
 
 > **Note:** This is a preview feature currently under active development.
 
-Sire defines required fields by default. Use rule-level `optional()`, `default()`, and `nullable()` when a field can be absent, filled, or explicitly `null`. Use `prepare()` for input normalization and `finalize()` for final output transforms.
+Sire defines required fields by default. Use rule-level `optional()`, `default()`, `empty()`, and `nullable()` when a field can be absent, filled, empty, or explicitly `null`. Use `prepare()` for input normalization and `finalize()` for final output transforms.
 
 ## Installation
 
