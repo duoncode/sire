@@ -26,6 +26,7 @@
 - Added the `number` type for values that may be integers or floats.
 - Added `Shape::review()` callbacks with `Review` for post-validation checks after successful normal validation.
 - Added `Rule::prepare()` to normalize present field values before type casting and nested shape validation.
+- Added `Rule::message()` and `Rule::messages()` for field-specific type and validator messages.
 - Added quoted and escaped arguments for validator DSL definitions.
 - Added `Contract\Validator`, `Contract\ValidatesEmpty`, `Contract\Coercion`, `Contract\Validation`, and built-in validator classes.
 - Added `Shape::message()` and `Shape::messages()` for coercion and validator error messages.

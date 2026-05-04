@@ -154,6 +154,25 @@ $shape->add('age', 'int', 'required')->label('Age');
 $shape->add('enabled', 'bool')->label('Enabled');
 ```
 
+Use `Rule::message()` or `Rule::messages()` for field-specific messages. Rule messages override shape messages for the same field.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = new Shape();
+$shape
+    ->add('age', 'int', 'max:120')
+    ->label('Age')
+    ->messages([
+        'type' => '{label} must be a whole number',
+        'max' => '{label} must be at most {arg1}',
+    ]);
+```
+
+In rule messages, `type` means the rule's own type and validator names such as `max`, `required`, or `email` mean that validator. Explicit keys such as `type.int` and `validator.max` also work.
+
 Message templates can use named placeholders:
 
 - `{label}` is the rule label, or the field name when no label is set.
@@ -163,7 +182,7 @@ Message templates can use named placeholders:
 
 Use `{{` and `}}` for literal braces. Do not mix named and `sprintf()` placeholders in one template. Existing `sprintf()` templates still work, with `%1$s`, `%2$s`, `%3$s`, and `%4$s` mapping to `{label}`, `{field}`, `{value}`, and `{arg1}`.
 
-When no shape-level message is configured, Sire uses the coercer or validator's `message` property.
+When no rule or shape-level message is configured, Sire uses the coercer or validator's `message` property.
 
 ## Review validated values
 
