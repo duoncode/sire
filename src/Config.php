@@ -87,15 +87,15 @@ final class Config
 	}
 
 	/**
-	 * @param array<string, Rule> $rules
+	 * @param array<string, Field> $fields
 	 * @param list<Closure(Review): void> $reviewCallbacks
 	 */
-	public function definition(array $rules, array $reviewCallbacks): ShapeDefinition
+	public function definition(array $fields, array $reviewCallbacks): ShapeDefinition
 	{
 		return new ShapeDefinition(
 			$this->list,
 			$this->extra,
-			$rules,
+			$fields,
 			$this->resolvedValidatorRegistry(),
 			$this->resolvedCoercerRegistry(),
 			$this->resolvedValidatorParser(),

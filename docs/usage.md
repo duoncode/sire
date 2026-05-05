@@ -8,7 +8,7 @@ This guide covers the day-to-day Sire API, including shape creation, validation 
 
 ## Validate data with a shape
 
-Create a `Shape`, define rules with `add()`, and call `validate()` to get a `Result` object.
+Create a `Shape`, define fields with `add()`, and call `validate()` to get a `Result` object.
 
 ```php
 <?php
@@ -69,7 +69,7 @@ $shape = Shape::list()
 
 Use `asList(false)` to switch a configured list shape back to object mode.
 
-`extra()` controls input fields that do not have a rule:
+`extra()` controls input fields that do not have a field:
 
 - `Extra::Ignore` drops extra fields. This is the default.
 - `Extra::Allow` keeps extra fields as-is in `values()`.
@@ -152,7 +152,7 @@ $result = $shape->validate([]);
 var_dump($result->values()); // ['status' => 'draft', 'count' => 0]
 ```
 
-Use `empty()` to configure which raw input states count as empty for a rule. Empty values are handled before preparation. They use the default when one exists, are omitted when the rule is optional, or report the normal missing-field error otherwise. The enum is named `Blank` because `empty` is a PHP language construct.
+Use `empty()` to configure which raw input states count as empty for a field. Empty values are handled before preparation. They use the default when one exists, are omitted when the field is optional, or report the normal missing-field error otherwise. The enum is named `Blank` because `empty` is a PHP language construct.
 
 ```php
 <?php
@@ -170,7 +170,7 @@ var_dump($shape->validate(['status' => null])->values()['status']); // "draft"
 var_dump($shape->validate(['status' => '  '])->values()['status']); // "draft"
 ```
 
-`empty()` replaces the rule's empty-value set. Include `Blank::Missing` when a default should still apply to missing input.
+`empty()` replaces the field's empty-value set. Include `Blank::Missing` when a default should still apply to missing input.
 
 - `Blank::Missing` matches an absent field.
 - `Blank::Null` matches explicit `null`.
@@ -199,7 +199,7 @@ For each field, Sire applies empty handling first, then `default()` or `optional
 
 ## Prepare input before validation
 
-Use `Rule::prepare()` when a field value needs normalization before Sire casts or validates it. Prepare callbacks run in registration order for present fields and for fields filled by `default()`. They do not run for missing `optional()` fields or missing fields that report an error.
+Use `Field::prepare()` when a field value needs normalization before Sire casts or validates it. Prepare callbacks run in registration order for present fields and for fields filled by `default()`. They do not run for missing `optional()` fields or missing fields that report an error.
 
 ```php
 <?php
@@ -256,11 +256,11 @@ $user
     ->prepare(static fn(mixed $value): mixed => $value ?? []);
 ```
 
-If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the rule type, normal coercion or nested validation reports the validation error.
+If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the field type, normal coercion or nested validation reports the validation error.
 
 ## Finalize output after validation
 
-Use `Rule::finalize()` when a field needs a final output transform after coercion and field validators. Finalize callbacks run only when validation has no errors, before review callbacks, and in registration order for each rule.
+Use `Field::finalize()` when a field needs a final output transform after coercion and field validators. Finalize callbacks run only when validation has no errors, before review callbacks, and in registration order for each field.
 
 ```php
 <?php
@@ -324,7 +324,7 @@ $shape->add('age', 'int', 'required')->label('Age');
 $shape->add('enabled', 'bool')->label('Enabled');
 ```
 
-Use `Rule::message()` or `Rule::messages()` for field-specific messages. Rule messages override shape messages for the same field.
+Use `Field::message()` or `Field::messages()` for field-specific messages. Field messages override shape messages for the same field.
 
 ```php
 <?php
@@ -341,18 +341,18 @@ $shape
     ]);
 ```
 
-In rule messages, `type` means the rule's own type, `missing` and `null` mean field presence errors, and validator names such as `max`, `required`, or `email` mean that validator. Explicit keys such as `type.int` and `validator.max` also work.
+In field messages, `type` means the field's own type, `missing` and `null` mean field presence errors, and validator names such as `max`, `required`, or `email` mean that validator. Explicit keys such as `type.int` and `validator.max` also work.
 
 Message templates can use named placeholders:
 
-- `{label}` is the rule label, or the field name when no label is set.
+- `{label}` is the field label, or the field name when no label is set.
 - `{field}` is the field name.
 - `{value}` is the pristine value that reached validation.
 - `{arg1}`, `{arg2}`, and later values come from custom `Failure` arguments for coercers or validator DSL arguments for validators.
 
 Use `{{` and `}}` for literal braces. Do not mix named and `sprintf()` placeholders in one template. Existing `sprintf()` templates still work, with `%1$s`, `%2$s`, `%3$s`, and `%4$s` mapping to `{label}`, `{field}`, `{value}`, and `{arg1}`.
 
-When no rule or shape-level message is configured, Sire uses the coercer or validator's `message` property.
+When no field or shape-level message is configured, Sire uses the coercer or validator's `message` property.
 
 ## Review validated values
 
@@ -438,7 +438,7 @@ final class LoginShape implements Contract\Shape
 }
 ```
 
-Delegating shapes can be used anywhere a nested shape is accepted because Sire rules accept `Contract\Shape`. If a custom shape also exposes `parse()`, implement `Contract\Parser` and delegate both methods.
+Delegating shapes can be used anywhere a nested shape is accepted because Sire fields accept `Contract\Shape`. If a custom shape also exposes `parse()`, implement `Contract\Parser` and delegate both methods.
 
 ## Extend validators and coercers
 

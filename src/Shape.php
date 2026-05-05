@@ -14,8 +14,8 @@ final class Shape implements Contract\Parser, Contract\Shape
 {
 	private Config $config;
 
-	/** @var array<string, Rule> */
-	private array $rules = [];
+	/** @var array<string, Field> */
+	private array $fields = [];
 
 	/** @var list<Closure(Review): void> */
 	private array $reviewCallbacks = [];
@@ -98,7 +98,7 @@ final class Shape implements Contract\Parser, Contract\Shape
 		string $field,
 		string|Contract\Shape $type,
 		string ...$validators,
-	): Rule {
+	): Field {
 		if (!$field) {
 			throw new ValueError(
 				'Shape definition error: field must not be empty',
@@ -107,11 +107,11 @@ final class Shape implements Contract\Parser, Contract\Shape
 
 		/** @var list<string> $validatorList */
 		$validatorList = $validators;
-		$rule = new Rule($field, $type, $validatorList);
+		$definition = new Field($field, $type, $validatorList);
 
-		$this->rules[$field] = $rule;
+		$this->fields[$field] = $definition;
 
-		return $rule;
+		return $definition;
 	}
 
 	/** @param Closure(Review): void $callback */
@@ -149,6 +149,6 @@ final class Shape implements Contract\Parser, Contract\Shape
 
 	private function definition(): ShapeDefinition
 	{
-		return $this->config->definition($this->rules, $this->reviewCallbacks);
+		return $this->config->definition($this->fields, $this->reviewCallbacks);
 	}
 }

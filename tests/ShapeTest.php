@@ -88,7 +88,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Age must be at least 18, got 12', $result->first('age'));
 	}
 
-	public function testRuleTypeMessageOverridesShapeMessage(): void
+	public function testFieldTypeMessageOverridesShapeMessage(): void
 	{
 		$shape = new Shape()->message('type.int', 'Global int error');
 		$shape->add('age', 'int')->message('type', 'Age must be a whole number');
@@ -104,7 +104,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Global int error', $result->first('count'));
 	}
 
-	public function testRuleValidatorMessageOverridesShapeMessage(): void
+	public function testFieldValidatorMessageOverridesShapeMessage(): void
 	{
 		$shape = new Shape()->message('validator.max', 'Global max {arg1}');
 		$shape->add('age', 'int', 'max:120')->message('max', 'Age must be at most {arg1}, got {value}');
@@ -120,7 +120,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Global max 10', $result->first('score'));
 	}
 
-	public function testRuleMessagesSupportExplicitKeys(): void
+	public function testFieldMessagesSupportExplicitKeys(): void
 	{
 		$shape = new Shape();
 		$shape->add('age', 'int', 'max:120')->messages([
@@ -875,7 +875,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('email is required', $result->first('email'));
 	}
 
-	public function testRulePreparationRunsBeforeScalarValidation(): void
+	public function testFieldPreparationRunsBeforeScalarValidation(): void
 	{
 		$shape = new Shape();
 		$shape->add('age', 'int')->prepare(static fn(mixed $_value): string => '42');
@@ -886,7 +886,7 @@ class ShapeTest extends TestCase
 		$this->assertSame(42, $result->values()['age']);
 	}
 
-	public function testRuleDefaultValueFillsMissingField(): void
+	public function testFieldDefaultValueFillsMissingField(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->default('draft');
@@ -899,7 +899,7 @@ class ShapeTest extends TestCase
 		$this->assertSame(13, $result->values()['count']);
 	}
 
-	public function testRuleDefaultValueRunsBeforePreparation(): void
+	public function testFieldDefaultValueRunsBeforePreparation(): void
 	{
 		$shape = new Shape();
 		$shape->add('title', 'text');
@@ -918,7 +918,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('hello', $result->values()['slug']);
 	}
 
-	public function testExplicitValueOverridesRuleDefault(): void
+	public function testExplicitValueOverridesFieldDefault(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->default('draft');
@@ -929,7 +929,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('published', $result->values()['status']);
 	}
 
-	public function testInvalidRuleDefaultAddsValidationError(): void
+	public function testInvalidFieldDefaultAddsValidationError(): void
 	{
 		$shape = new Shape();
 		$shape->add('age', 'int')->label('Age')->default('old');
@@ -941,7 +941,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('old', $result->values()['age']);
 	}
 
-	public function testInvalidNestedRuleDefaultAddsValidationError(): void
+	public function testInvalidNestedFieldDefaultAddsValidationError(): void
 	{
 		$nested = new Shape();
 		$nested->add('email', 'text', 'email')->label('Email');
@@ -956,7 +956,7 @@ class ShapeTest extends TestCase
 		$this->assertSame(['email' => 'invalid'], $result->values()['child']);
 	}
 
-	public function testNullableRuleAllowsNullValue(): void
+	public function testNullableFieldAllowsNullValue(): void
 	{
 		$shape = new Shape();
 		$shape->add('items', 'list')->label('Items')->nullable();
@@ -967,7 +967,7 @@ class ShapeTest extends TestCase
 		$this->assertNull($result->values()['items']);
 	}
 
-	public function testNonNullableRuleRejectsNullValue(): void
+	public function testNonNullableFieldRejectsNullValue(): void
 	{
 		$shape = new Shape();
 		$shape->add('items', 'list')->label('Items');
@@ -978,7 +978,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Items must not be null', $result->first('items'));
 	}
 
-	public function testRuleNullMessageOverridesShapeMessage(): void
+	public function testFieldNullMessageOverridesShapeMessage(): void
 	{
 		$shape = new Shape();
 		$shape->message('null', 'Shape null');
@@ -990,7 +990,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Items cannot be null', $result->first('items'));
 	}
 
-	public function testNullRuleDefaultImpliesNullable(): void
+	public function testNullFieldDefaultImpliesNullable(): void
 	{
 		$shape = new Shape();
 		$shape->add('note', 'text')->default(null);
@@ -1001,7 +1001,7 @@ class ShapeTest extends TestCase
 		$this->assertNull($result->values()['note']);
 	}
 
-	public function testRequiredNarrowsNullRuleDefault(): void
+	public function testRequiredNarrowsNullFieldDefault(): void
 	{
 		$shape = new Shape();
 		$shape->add('note', 'text', 'required')->default(null);
@@ -1012,7 +1012,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('note is required', $result->first('note'));
 	}
 
-	public function testRulePreparationReceivesInputData(): void
+	public function testFieldPreparationReceivesInputData(): void
 	{
 		$shape = new Shape();
 		$shape->add('slug', 'text')->prepare(
@@ -1030,7 +1030,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('hello', $result->values()['slug']);
 	}
 
-	public function testRulePreparationRunsBeforeNestedShapeValidation(): void
+	public function testFieldPreparationRunsBeforeNestedShapeValidation(): void
 	{
 		$nested = new Shape();
 		$nested->add('name', 'text', 'required');
@@ -1046,7 +1046,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Prepared', $result->values()['child']['name']);
 	}
 
-	public function testRuleFinalizationRunsAfterValidation(): void
+	public function testFieldFinalizationRunsAfterValidation(): void
 	{
 		$called = false;
 		$shape = new Shape();
@@ -1069,7 +1069,7 @@ class ShapeTest extends TestCase
 		$this->assertSame(3, $result->values()['offset']);
 	}
 
-	public function testRuleFinalizationRunsForDefaults(): void
+	public function testFieldFinalizationRunsForDefaults(): void
 	{
 		$shape = new Shape();
 		$shape->add('title', 'text');
@@ -1105,7 +1105,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('ADA', $result->values()['name']);
 	}
 
-	public function testRuleFinalizationDoesNotRunAfterValidationErrors(): void
+	public function testFieldFinalizationDoesNotRunAfterValidationErrors(): void
 	{
 		$called = false;
 		$shape = new Shape();
@@ -1121,7 +1121,7 @@ class ShapeTest extends TestCase
 		$this->assertFalse($called);
 	}
 
-	public function testRuleFinalizationDoesNotRunForOmittedOptionalValues(): void
+	public function testFieldFinalizationDoesNotRunForOmittedOptionalValues(): void
 	{
 		$called = false;
 		$shape = new Shape();
@@ -1141,7 +1141,7 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testRuleFinalizationReceivesListItemValues(): void
+	public function testFieldFinalizationReceivesListItemValues(): void
 	{
 		$seen = [];
 		$shape = Shape::list();
@@ -1171,7 +1171,7 @@ class ShapeTest extends TestCase
 		);
 	}
 
-	public function testOptionalRuleOmitsMissingValue(): void
+	public function testOptionalFieldOmitsMissingValue(): void
 	{
 		$shape = new Shape();
 		$shape->add('subtitle', 'text')->optional();
@@ -1182,7 +1182,7 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testOptionalRuleValidatesPresentValue(): void
+	public function testOptionalFieldValidatesPresentValue(): void
 	{
 		$shape = new Shape();
 		$shape->add('age', 'int')->optional();
@@ -1193,7 +1193,7 @@ class ShapeTest extends TestCase
 		$this->assertSame(13, $result->values()['age']);
 	}
 
-	public function testMissingRuleAddsValidationError(): void
+	public function testMissingFieldAddsValidationError(): void
 	{
 		$shape = new Shape();
 		$shape->add('title', 'text')->label('Title');
@@ -1205,7 +1205,7 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testRuleMissingMessageOverridesShapeMessage(): void
+	public function testFieldMissingMessageOverridesShapeMessage(): void
 	{
 		$shape = new Shape();
 		$shape->message('missing', 'Shape missing');
@@ -1217,7 +1217,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Title is missing', $result->first('title'));
 	}
 
-	public function testRulePreparationDoesNotRunForMissingValues(): void
+	public function testFieldPreparationDoesNotRunForMissingValues(): void
 	{
 		$called = false;
 		$shape = new Shape();

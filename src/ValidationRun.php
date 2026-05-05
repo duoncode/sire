@@ -56,7 +56,7 @@ final class ValidationRun
 	}
 
 	private function validateField(
-		Rule $rule,
+		Field $definition,
 		Value $value,
 		string $validatorDefinition,
 		string|int|null $listIndex,
@@ -69,7 +69,7 @@ final class ValidationRun
 
 		if ($validator === null) {
 			throw new ValueError(
-				sprintf('Unknown validator "%s" in field "%s"', $validatorName, $rule->field),
+				sprintf('Unknown validator "%s" in field "%s"', $validatorName, $definition->field),
 			);
 		}
 
@@ -83,16 +83,16 @@ final class ValidationRun
 
 		if ($validation->failure !== null) {
 			$this->errors->add(
-				self::path($rule->field, $listIndex),
+				self::path($definition->field, $listIndex),
 				$this->formatFailure(
 					$validation->failure,
-					$rule->name(),
-					$rule->field,
+					$definition->name(),
+					$definition->field,
 					$value->pristine,
 					'validator.' . $validatorName,
 					$validator->message,
 					$validatorArgs,
-					$rule->messageOverrides(),
+					$definition->messageOverrides(),
 				),
 			);
 		}
@@ -124,13 +124,13 @@ final class ValidationRun
 	{
 		$itemValues = $this->getValues($values);
 
-		foreach ($this->shape->rules as $field => $rule) {
+		foreach ($this->shape->fields as $field => $definition) {
 			if (!array_key_exists($field, $values)) {
 				continue;
 			}
 
 			$value = $values[$field];
-			$finalValue = $rule->applyFinalization($value->value, $itemValues);
+			$finalValue = $definition->applyFinalization($value->value, $itemValues);
 			$values[$field] = new \Duon\Sire\Value($finalValue, $value->pristine);
 		}
 
@@ -162,9 +162,9 @@ final class ValidationRun
 
 		foreach ($data as $field => $value) {
 			$field = (string) $field;
-			$rule = $this->shape->rules[$field] ?? null;
-			$value = $rule instanceof Rule
-				? $this->readRuleValue($field, $rule, $value, $data, $listIndex)
+			$definition = $this->shape->fields[$field] ?? null;
+			$value = $definition instanceof Field
+				? $this->readFieldValue($field, $definition, $value, $data, $listIndex)
 				: $this->readExtraValue($field, $value, $listIndex);
 
 			if ($value !== null) {
@@ -176,18 +176,18 @@ final class ValidationRun
 	}
 
 	/** @param array<string, mixed> $data */
-	private function readRuleValue(
+	private function readFieldValue(
 		string $field,
-		Rule $rule,
+		Field $definition,
 		mixed $value,
 		array $data,
 		string|int|null $listIndex,
 	): ?Value {
-		if ($rule->isBlank($value)) {
-			return $this->readEmptyValue($field, $rule, $data, $listIndex);
+		if ($definition->isBlank($value)) {
+			return $this->readEmptyValue($field, $definition, $data, $listIndex);
 		}
 
-		$read = $this->readKnownValue($rule, $value, $data);
+		$read = $this->readKnownValue($definition, $value, $data);
 
 		if ($read->nestedResult !== null) {
 			$this->errors->addNested(self::path($field, $listIndex), $read->nestedResult);
@@ -203,21 +203,21 @@ final class ValidationRun
 	/** @param array<string, mixed> $data */
 	private function readEmptyValue(
 		string $field,
-		Rule $rule,
+		Field $definition,
 		array $data,
 		string|int|null $listIndex,
 	): ?Value {
-		if ($rule->hasDefault()) {
-			return $this->readDefaultValue($field, $rule, $data, $listIndex);
+		if ($definition->hasDefault()) {
+			return $this->readDefaultValue($field, $definition, $data, $listIndex);
 		}
 
-		if ($rule->isOptional()) {
+		if ($definition->isOptional()) {
 			return null;
 		}
 
 		$this->errors->add(
 			self::path($field, $listIndex),
-			$this->formatMissingFailure($rule),
+			$this->formatMissingFailure($definition),
 		);
 
 		return null;
@@ -226,11 +226,11 @@ final class ValidationRun
 	/** @param array<string, mixed> $data */
 	private function readDefaultValue(
 		string $field,
-		Rule $rule,
+		Field $definition,
 		array $data,
 		string|int|null $listIndex,
 	): Value {
-		$read = $this->readKnownValue($rule, $rule->defaultValue(), $data);
+		$read = $this->readKnownValue($definition, $definition->defaultValue(), $data);
 
 		if ($read->nestedResult !== null) {
 			$this->errors->addNested(self::path($field, $listIndex), $read->nestedResult);
@@ -260,24 +260,24 @@ final class ValidationRun
 	}
 
 	/** @param array<string, mixed> $data */
-	private function readKnownValue(Rule $rule, mixed $value, array $data): ReadValue
+	private function readKnownValue(Field $definition, mixed $value, array $data): ReadValue
 	{
-		$value = $rule->applyPreparation($value, $data);
+		$value = $definition->applyPreparation($value, $data);
 
 		if ($value === null) {
 			return new ReadValue(
 				new \Duon\Sire\Value(null, null),
-				$rule->isNullable() ? null : $this->formatNullFailure($rule),
+				$definition->isNullable() ? null : $this->formatNullFailure($definition),
 			);
 		}
 
-		$type = $rule->type();
+		$type = $definition->type();
 
 		if ($type === 'shape') {
-			$shape = $rule->type;
-			assert($shape instanceof Contract\Shape, 'Expected shape rule type to be a shape instance');
+			$shape = $definition->type;
+			assert($shape instanceof Contract\Shape, 'Expected shape field type to be a shape instance');
 
-			return $this->toSubValues($value, $rule, $shape);
+			return $this->toSubValues($value, $definition, $shape);
 		}
 
 		$coercer = $this->shape->coercers->get($type);
@@ -290,7 +290,7 @@ final class ValidationRun
 
 		return new ReadValue(
 			new \Duon\Sire\Value($coercion->value, $coercion->pristine),
-			$this->formatCoercionFailure($coercion, $rule, $coercer),
+			$this->formatCoercionFailure($coercion, $definition, $coercer),
 		);
 	}
 
@@ -306,35 +306,35 @@ final class ValidationRun
 		);
 	}
 
-	private function formatNullFailure(Rule $rule): Issue
+	private function formatNullFailure(Field $definition): Issue
 	{
 		return $this->formatFailure(
 			Failure::key('null'),
-			$rule->name(),
-			$rule->field,
+			$definition->name(),
+			$definition->field,
 			null,
 			'null',
 			'{label} must not be null',
-			messages: $rule->messageOverrides(),
+			messages: $definition->messageOverrides(),
 		);
 	}
 
-	private function formatMissingFailure(Rule $rule): Issue
+	private function formatMissingFailure(Field $definition): Issue
 	{
 		return $this->formatFailure(
 			Failure::key('missing'),
-			$rule->name(),
-			$rule->field,
+			$definition->name(),
+			$definition->field,
 			null,
 			'missing',
 			'{label} is required',
-			messages: $rule->messageOverrides(),
+			messages: $definition->messageOverrides(),
 		);
 	}
 
 	private function formatCoercionFailure(
 		Contract\Coercion $coercion,
-		Rule $rule,
+		Field $definition,
 		Contract\Coercer $coercer,
 	): ?Issue {
 		if ($coercion->failure === null) {
@@ -343,25 +343,25 @@ final class ValidationRun
 
 		return $this->formatFailure(
 			$coercion->failure,
-			$rule->name(),
-			$rule->field,
+			$definition->name(),
+			$definition->field,
 			$coercion->pristine,
-			'type.' . $rule->type(),
+			'type.' . $definition->type(),
 			$coercer->message,
-			messages: $rule->messageOverrides(),
+			messages: $definition->messageOverrides(),
 		);
 	}
 
-	private function formatShapeFailure(Rule $rule, mixed $value): Issue
+	private function formatShapeFailure(Field $definition, mixed $value): Issue
 	{
 		return $this->formatFailure(
 			Failure::invalid(),
-			$rule->name(),
-			$rule->field,
+			$definition->name(),
+			$definition->field,
 			$value,
 			'type.shape',
 			'{label} must be an array',
-			messages: $rule->messageOverrides(),
+			messages: $definition->messageOverrides(),
 		);
 	}
 
@@ -398,12 +398,12 @@ final class ValidationRun
 		);
 	}
 
-	private function toSubValues(mixed $pristine, Rule $rule, Contract\Shape $shape): ReadValue
+	private function toSubValues(mixed $pristine, Field $definition, Contract\Shape $shape): ReadValue
 	{
 		if (!is_array($pristine)) {
 			return new ReadValue(
 				new \Duon\Sire\Value($pristine, $pristine),
-				$this->formatShapeFailure($rule, $pristine),
+				$this->formatShapeFailure($definition, $pristine),
 			);
 		}
 
@@ -438,18 +438,18 @@ final class ValidationRun
 	 * @param array<string, mixed> $data
 	 * @return array<string, Value>
 	 */
-	private function fillMissingFromRules(
+	private function fillMissingFromFields(
 		array $values,
 		array $data,
 		string|int|null $listIndex = null,
 	): array {
-		foreach ($this->shape->rules as $field => $rule) {
+		foreach ($this->shape->fields as $field => $definition) {
 			if (array_key_exists($field, $values) || array_key_exists($field, $data)) {
 				continue;
 			}
 
-			if ($rule->treatsMissingAsEmpty()) {
-				$value = $this->readEmptyValue($field, $rule, $data, $listIndex);
+			if ($definition->treatsMissingAsEmpty()) {
+				$value = $this->readEmptyValue($field, $definition, $data, $listIndex);
 
 				if ($value !== null) {
 					$values[$field] = $value;
@@ -458,13 +458,13 @@ final class ValidationRun
 				continue;
 			}
 
-			if ($rule->isOptional()) {
+			if ($definition->isOptional()) {
 				continue;
 			}
 
 			$this->errors->add(
 				self::path($field, $listIndex),
-				$this->formatMissingFailure($rule),
+				$this->formatMissingFailure($definition),
 			);
 		}
 
@@ -490,7 +490,7 @@ final class ValidationRun
 
 				/** @var array<string, mixed> $item */
 				$subValues = $this->readFromData($item, $listIndex);
-				$values[] = $this->fillMissingFromRules($subValues, $item, $listIndex);
+				$values[] = $this->fillMissingFromFields($subValues, $item, $listIndex);
 			}
 
 			return $values;
@@ -498,7 +498,7 @@ final class ValidationRun
 
 		$values = $this->readFromData($data);
 
-		return $this->fillMissingFromRules($values, $data);
+		return $this->fillMissingFromFields($values, $data);
 	}
 
 	/**
@@ -507,14 +507,14 @@ final class ValidationRun
 	 */
 	private function validateItem(array $values, string|int|null $listIndex = null): array
 	{
-		foreach ($this->shape->rules as $field => $rule) {
+		foreach ($this->shape->fields as $field => $definition) {
 			if (!array_key_exists($field, $values)) {
 				continue;
 			}
 
-			foreach ($rule->validators as $validator) {
+			foreach ($definition->validators as $validator) {
 				$this->validateField(
-					$rule,
+					$definition,
 					$values[$field],
 					$validator,
 					$listIndex,

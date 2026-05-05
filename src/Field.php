@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire;
 
 /** @api */
-final class Rule
+final class Field
 {
 	private ?string $label = null;
 

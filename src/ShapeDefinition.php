@@ -10,13 +10,13 @@ use Closure;
 final readonly class ShapeDefinition
 {
 	/**
-	 * @param array<string, Rule> $rules
+	 * @param array<string, Field> $fields
 	 * @param list<Closure(Review): void> $reviewCallbacks
 	 */
 	public function __construct(
 		public bool $list,
 		public Extra $extra,
-		public array $rules,
+		public array $fields,
 		public Contract\ValidatorRegistry $validators,
 		public Contract\CoercerRegistry $coercers,
 		public Contract\ValidatorParser $validatorParser,

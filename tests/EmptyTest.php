@@ -28,7 +28,7 @@ class EmptyTest extends TestCase
 		$this->assertSame('Ada', $result->values()['name']);
 	}
 
-	public function testRuleDefaultValueDoesNotFillNullByDefault(): void
+	public function testFieldDefaultValueDoesNotFillNullByDefault(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->label('Status')->default('draft');
@@ -40,7 +40,7 @@ class EmptyTest extends TestCase
 		$this->assertNull($result->values()['status']);
 	}
 
-	public function testRuleEmptyNullDefaultFillsNullAndMissingValues(): void
+	public function testFieldEmptyNullDefaultFillsNullAndMissingValues(): void
 	{
 		$shape = new Shape();
 		$shape
@@ -57,7 +57,7 @@ class EmptyTest extends TestCase
 		$this->assertSame('draft', $missingResult->values()['status']);
 	}
 
-	public function testRuleEmptyNullDefaultDoesNotFillMissingWithoutMissingEmpty(): void
+	public function testFieldEmptyNullDefaultDoesNotFillMissingWithoutMissingEmpty(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->empty(Blank::Null)->default('draft');
@@ -69,7 +69,7 @@ class EmptyTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testRuleEmptyStringDefaultMatchesExactString(): void
+	public function testFieldEmptyStringDefaultMatchesExactString(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->empty(Blank::String)->default('draft');
@@ -83,7 +83,7 @@ class EmptyTest extends TestCase
 		$this->assertSame(' ', $spaceResult->values()['status']);
 	}
 
-	public function testRuleEmptyWhitespaceDefaultFillsBlankStrings(): void
+	public function testFieldEmptyWhitespaceDefaultFillsBlankStrings(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->empty(Blank::Whitespace)->default('draft');
@@ -97,7 +97,7 @@ class EmptyTest extends TestCase
 		$this->assertSame('draft', $blankResult->values()['status']);
 	}
 
-	public function testRuleEmptyListDefaultFillsEmptyList(): void
+	public function testFieldEmptyListDefaultFillsEmptyList(): void
 	{
 		$shape = new Shape();
 		$shape->add('items', 'list')->empty(Blank::List)->default(['draft']);
@@ -108,7 +108,7 @@ class EmptyTest extends TestCase
 		$this->assertSame(['draft'], $result->values()['items']);
 	}
 
-	public function testRuleEmptyNullOptionalOmitsNullWithoutPreparation(): void
+	public function testFieldEmptyNullOptionalOmitsNullWithoutPreparation(): void
 	{
 		$called = false;
 		$shape = new Shape();
@@ -129,7 +129,7 @@ class EmptyTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testOptionalRuleOmitsMissingWhenMissingIsNotEmpty(): void
+	public function testOptionalFieldOmitsMissingWhenMissingIsNotEmpty(): void
 	{
 		$shape = new Shape();
 		$shape->add('status', 'text')->empty(Blank::Null)->optional();
@@ -140,7 +140,7 @@ class EmptyTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testRuleBlankWithoutDefaultAddsMissingError(): void
+	public function testFieldBlankWithoutDefaultAddsMissingError(): void
 	{
 		$shape = new Shape();
 		$shape->add('title', 'text')->label('Title')->empty(Blank::String);
@@ -152,7 +152,7 @@ class EmptyTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
-	public function testPresentValueOverridesRuleEmptyDefault(): void
+	public function testPresentValueOverridesFieldEmptyDefault(): void
 	{
 		$shape = new Shape();
 		$shape
