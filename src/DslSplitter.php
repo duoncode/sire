@@ -77,7 +77,7 @@ final class DslSplitter
 		}
 
 		if ($quote !== null) {
-			throw new ValueError('Invalid validator definition: unclosed quote');
+			throw new ValueError('Invalid rule definition: unclosed quote');
 		}
 
 		return $parts;

@@ -8,16 +8,16 @@ use Duon\Sire\CoercerRegistry;
 use Duon\Sire\Coercion;
 use Duon\Sire\Contract\Coercer;
 use Duon\Sire\Contract\Parser;
-use Duon\Sire\Contract\Validator;
-use Duon\Sire\Contract\ValidatorParser;
+use Duon\Sire\Contract\Rule;
+use Duon\Sire\Contract\RuleParser;
 use Duon\Sire\Contract\Value;
 use Duon\Sire\Exception\ValidationError;
 use Duon\Sire\Extra;
 use Duon\Sire\Failure;
 use Duon\Sire\Review;
+use Duon\Sire\RuleRegistry;
 use Duon\Sire\Shape;
 use Duon\Sire\Validation;
-use Duon\Sire\ValidatorRegistry;
 use Override;
 use ValueError;
 
@@ -66,9 +66,9 @@ class ShapeTest extends TestCase
 		$this->assertSame('Enabled must be yes or no', $result->first('enabled'));
 	}
 
-	public function testCustomValidatorMessage(): void
+	public function testCustomRuleMessage(): void
 	{
-		$shape = new Shape()->message('validator.required', '{label} is mandatory');
+		$shape = new Shape()->message('rule.required', '{label} is mandatory');
 		$shape->add('name', 'text', 'required')->label('Name');
 
 		$result = $shape->validate(['name' => '']);
@@ -77,9 +77,9 @@ class ShapeTest extends TestCase
 		$this->assertSame('Name is mandatory', $result->first('name'));
 	}
 
-	public function testCustomValidatorMessageWithArgs(): void
+	public function testCustomRuleMessageWithArgs(): void
 	{
-		$shape = new Shape()->message('validator.min', '{label} must be at least {arg1}, got {value}');
+		$shape = new Shape()->message('rule.min', '{label} must be at least {arg1}, got {value}');
 		$shape->add('age', 'int', 'min:18')->label('Age');
 
 		$result = $shape->validate(['age' => '12']);
@@ -104,9 +104,9 @@ class ShapeTest extends TestCase
 		$this->assertSame('Global int error', $result->first('count'));
 	}
 
-	public function testFieldValidatorMessageOverridesShapeMessage(): void
+	public function testFieldRuleMessageOverridesShapeMessage(): void
 	{
-		$shape = new Shape()->message('validator.max', 'Global max {arg1}');
+		$shape = new Shape()->message('rule.max', 'Global max {arg1}');
 		$shape->add('age', 'int', 'max:120')->message('max', 'Age must be at most {arg1}, got {value}');
 		$shape->add('score', 'int', 'max:10');
 
@@ -125,7 +125,7 @@ class ShapeTest extends TestCase
 		$shape = new Shape();
 		$shape->add('age', 'int', 'max:120')->messages([
 			'type.int' => 'Age must be numeric',
-			'validator.max' => 'Age must be at most {arg1}',
+			'rule.max' => 'Age must be at most {arg1}',
 		]);
 
 		$result = $shape->validate(['age' => 'old']);
@@ -241,24 +241,24 @@ class ShapeTest extends TestCase
 		$shape->validate(['invalid_field' => false]);
 	}
 
-	public function testUnknownValidator(): void
+	public function testUnknownRule(): void
 	{
 		$this->expectException(ValueError::class);
-		$this->expectExceptionMessage('Unknown validator');
+		$this->expectExceptionMessage('Unknown rule');
 
 		$shape = new Shape();
 		$shape->add('field', 'text', 'unknown');
 		$shape->validate(['field' => 'value']);
 	}
 
-	public function testCustomValidatorRegistry(): void
+	public function testCustomRuleRegistry(): void
 	{
-		$registry = ValidatorRegistry::withDefaults()->with(
+		$registry = RuleRegistry::withDefaults()->with(
 			'starts_with',
-			self::startsWithValidator(),
+			self::startsWithRule(),
 		);
 
-		$shape = new Shape()->validators($registry);
+		$shape = new Shape()->rules($registry);
 		$shape->add('field', 'text', 'required', 'starts_with:foo');
 
 		$result = $shape->validate(['field' => 'foobar']);
@@ -271,18 +271,18 @@ class ShapeTest extends TestCase
 		$this->assertSame('field is required', $result->first('field'));
 	}
 
-	public function testCustomValidatorParser(): void
+	public function testCustomRuleParser(): void
 	{
-		$registry = new ValidatorRegistry([
-			'starts_with' => self::startsWithValidator(),
+		$registry = new RuleRegistry([
+			'starts_with' => self::startsWithRule(),
 		]);
 
-		$parser = new class implements ValidatorParser {
+		$parser = new class implements RuleParser {
 			#[Override]
 			/** @return array{name: string, args: list<string>} */
-			public function parse(string $validatorDefinition): array
+			public function parse(string $ruleDefinition): array
 			{
-				$parts = explode('|', $validatorDefinition);
+				$parts = explode('|', $ruleDefinition);
 
 				return [
 					'name' => $parts[0],
@@ -292,8 +292,8 @@ class ShapeTest extends TestCase
 		};
 
 		$shape = new Shape()
-			->validators($registry)
-			->validatorParser($parser);
+			->rules($registry)
+			->ruleParser($parser);
 		$shape->add('field', 'text', 'starts_with|foo');
 
 		$result = $shape->validate(['field' => 'foobar']);
@@ -404,7 +404,7 @@ class ShapeTest extends TestCase
 		$issues = $result->issues();
 		$this->assertCount(1, $issues);
 		$this->assertSame(['email'], $issues[0]->path);
-		$this->assertSame('validator.email', $issues[0]->code);
+		$this->assertSame('rule.email', $issues[0]->code);
 		$this->assertSame('email must be a valid email address', $issues[0]->message);
 
 		$this->assertSame('invalid', $result->values()['email']);
@@ -557,7 +557,7 @@ class ShapeTest extends TestCase
 		new Shape()->extra('drop');
 	}
 
-	public function testRequiredValidator(): void
+	public function testRequiredRule(): void
 	{
 		$testData = [
 			'valid_1' => 'value',
@@ -587,7 +587,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('invalid_3 is required', $result->first('invalid_3'));
 	}
 
-	public function testEmailValidator(): void
+	public function testEmailRule(): void
 	{
 		$testData = [
 			'valid_email' => 'valid@email.com',
@@ -604,7 +604,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Email must be a valid email address', $result->first('invalid_email'));
 	}
 
-	public function testEmailValidatorWithDnsCheck(): void
+	public function testEmailRuleWithDnsCheck(): void
 	{
 		$testData = [
 			'valid_email' => 'valid@gmail.com',
@@ -624,7 +624,7 @@ class ShapeTest extends TestCase
 		);
 	}
 
-	public function testMinValueValidator(): void
+	public function testMinValueRule(): void
 	{
 		$testData = [
 			'valid_1' => 13,
@@ -650,7 +650,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('invalid_2 must be at least 10', $result->first('invalid_2'));
 	}
 
-	public function testMaxValueValidator(): void
+	public function testMaxValueRule(): void
 	{
 		$testData = [
 			'valid_1' => 13,
@@ -676,7 +676,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('Max must be at most 13', $result->first('invalid_2'));
 	}
 
-	public function testMinLengthValidator(): void
+	public function testMinLengthRule(): void
 	{
 		$testData = [
 			'valid_1' => 'abcdefghijklm',
@@ -698,7 +698,7 @@ class ShapeTest extends TestCase
 		);
 	}
 
-	public function testMaxLengthValidator(): void
+	public function testMaxLengthRule(): void
 	{
 		$testData = [
 			'valid_1' => 'abcdefghi',
@@ -720,7 +720,7 @@ class ShapeTest extends TestCase
 		);
 	}
 
-	public function testRegexValidator(): void
+	public function testRegexRule(): void
 	{
 		$testData = [
 			'valid' => 'abcdefghi',
@@ -741,7 +741,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('invalid has an invalid format', $result->first('invalid'));
 	}
 
-	public function testInValidator(): void
+	public function testInRule(): void
 	{
 		$testData = [
 			'valid1' => 'valid',
@@ -760,7 +760,7 @@ class ShapeTest extends TestCase
 		$this->assertSame('invalid must be an allowed value', $result->first('invalid'));
 	}
 
-	public function testInValidatorWithQuotedAndEscapedValues(): void
+	public function testInRuleWithQuotedAndEscapedValues(): void
 	{
 		$testData = [
 			'quoted_comma' => 'ACME, Inc',
@@ -786,9 +786,9 @@ class ShapeTest extends TestCase
 
 	public function testEscapedAndQuotedColonArgument(): void
 	{
-		$shape = new Shape()->validator(
+		$shape = new Shape()->rule(
 			'starts_with',
-			self::startsWithValidator(),
+			self::startsWithRule(),
 		);
 		$shape->add('escaped', 'text', 'starts_with:http\\://');
 		$shape->add('quoted', 'text', 'starts_with:"http://"');
@@ -1414,7 +1414,7 @@ class ShapeTest extends TestCase
 		$shape->add('', 'Int', 'int');
 	}
 
-	public function testEmptyArraySkipsRegularValidator(): void
+	public function testEmptyArraySkipsRegularRule(): void
 	{
 		$testData = [
 			'items' => [],
@@ -1427,9 +1427,9 @@ class ShapeTest extends TestCase
 		$this->assertTrue($result->isValid());
 	}
 
-	private static function startsWithValidator(): Validator
+	private static function startsWithRule(): Rule
 	{
-		return new class implements Validator {
+		return new class implements Rule {
 			public string $message {
 				get => 'Must start with %4$s';
 			}
@@ -1451,7 +1451,7 @@ class ShapeTest extends TestCase
 		];
 
 		$shape = new Shape();
-		// Regex validator without a pattern (just 'regex' with no argument)
+		// Regex rule without a pattern (just 'regex' with no argument)
 		$shape->add('text', 'text', 'regex');
 
 		$result = $shape->validate($testData);

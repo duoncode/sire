@@ -11,18 +11,18 @@ class ResultTest extends TestCase
 {
 	public function testIssueOutput(): void
 	{
-		$issue = new Issue(['users', 1, 'email'], 'validator.email', 'Invalid value', [
+		$issue = new Issue(['users', 1, 'email'], 'rule.email', 'Invalid value', [
 			'arg1' => 'extra',
 		]);
 
 		$this->assertSame(['users', 1, 'email'], $issue->path);
-		$this->assertSame('validator.email', $issue->code);
+		$this->assertSame('rule.email', $issue->code);
 		$this->assertSame('Invalid value', $issue->message);
 		$this->assertSame(['arg1' => 'extra'], $issue->params);
 		$this->assertSame(
 			[
 				'path' => ['users', 1, 'email'],
-				'code' => 'validator.email',
+				'code' => 'rule.email',
 				'message' => 'Invalid value',
 				'params' => ['arg1' => 'extra'],
 			],
@@ -34,7 +34,7 @@ class ResultTest extends TestCase
 	{
 		$result = new Result(
 			[
-				new Issue(['email'], 'validator.email', 'Invalid value'),
+				new Issue(['email'], 'rule.email', 'Invalid value'),
 				new Issue(['profile', 'name'], 'missing', 'Name is required'),
 			],
 			['email' => 'x'],
@@ -84,7 +84,7 @@ class ResultTest extends TestCase
 	{
 		$result = new Result(
 			[
-				new Issue(['email'], 'validator.email', 'Invalid value'),
+				new Issue(['email'], 'rule.email', 'Invalid value'),
 			],
 			['email' => 'invalid'],
 		);
@@ -95,7 +95,7 @@ class ResultTest extends TestCase
 		$this->assertArrayHasKey('valid', $data);
 		$this->assertSame(false, $data['valid']);
 		$this->assertSame(['email'], $data['issues'][0]['path']);
-		$this->assertSame('validator.email', $data['issues'][0]['code']);
+		$this->assertSame('rule.email', $data['issues'][0]['code']);
 		$this->assertSame('Invalid value', $data['issues'][0]['message']);
 		$this->assertArrayNotHasKey('values', $data);
 	}

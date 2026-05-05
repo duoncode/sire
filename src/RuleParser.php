@@ -8,27 +8,27 @@ use Override;
 use ValueError;
 
 /** @api */
-final class ValidatorParser implements Contract\ValidatorParser
+final class RuleParser implements Contract\RuleParser
 {
 	#[Override]
 	/** @return array{name: string, args: list<string>} */
-	public function parse(string $validatorDefinition): array
+	public function parse(string $ruleDefinition): array
 	{
-		$validatorArray = DslSplitter::split($validatorDefinition, ':', true);
-		$validatorName = $validatorArray[0] ?? '';
+		$ruleArray = DslSplitter::split($ruleDefinition, ':', true);
+		$ruleName = $ruleArray[0] ?? '';
 
-		if ($validatorName === '') {
-			throw new ValueError('Invalid validator definition: missing validator name');
+		if ($ruleName === '') {
+			throw new ValueError('Invalid rule definition: missing rule name');
 		}
 
-		$validatorArgs = array_map(
+		$ruleArgs = array_map(
 			$this->unquoteWrappedArgument(...),
-			array_slice($validatorArray, 1),
+			array_slice($ruleArray, 1),
 		);
 
 		return [
-			'name' => $validatorName,
-			'args' => $validatorArgs,
+			'name' => $ruleName,
+			'args' => $ruleArgs,
 		];
 	}
 

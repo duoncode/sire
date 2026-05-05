@@ -58,28 +58,26 @@ final class ValidationRun
 	private function validateField(
 		Field $definition,
 		Value $value,
-		string $validatorDefinition,
+		string $ruleDefinition,
 		string|int|null $listIndex,
 	): void {
-		$parsedValidator = $this->shape->validatorParser->parse($validatorDefinition);
-		$validatorName = $parsedValidator['name'];
-		$validatorArgs = $parsedValidator['args'];
+		$parsedRule = $this->shape->ruleParser->parse($ruleDefinition);
+		$ruleName = $parsedRule['name'];
+		$ruleArgs = $parsedRule['args'];
 
-		$validator = $this->shape->validators->get($validatorName);
+		$rule = $this->shape->rules->get($ruleName);
 
-		if ($validator === null) {
+		if ($rule === null) {
 			throw new ValueError(
-				sprintf('Unknown validator "%s" in field "%s"', $validatorName, $definition->field),
+				sprintf('Unknown rule "%s" in field "%s"', $ruleName, $definition->field),
 			);
 		}
 
-		if (
-			!$validator instanceof Contract\ValidatesEmpty && self::isSkippableEmptyValue($value->value)
-		) {
+		if (!$rule instanceof Contract\ValidatesEmpty && self::isSkippableEmptyValue($value->value)) {
 			return;
 		}
 
-		$validation = $validator->validate($value, ...$validatorArgs);
+		$validation = $rule->validate($value, ...$ruleArgs);
 
 		if ($validation->failure !== null) {
 			$this->errors->add(
@@ -89,9 +87,9 @@ final class ValidationRun
 					$definition->name(),
 					$definition->field,
 					$value->pristine,
-					'validator.' . $validatorName,
-					$validator->message,
-					$validatorArgs,
+					'rule.' . $ruleName,
+					$rule->message,
+					$ruleArgs,
 					$definition->messageOverrides(),
 				),
 			);
@@ -275,7 +273,7 @@ final class ValidationRun
 
 		if ($type === 'shape') {
 			$shape = $definition->type;
-			assert($shape instanceof Contract\Shape, 'Expected shape field type to be a shape instance');
+			assert($shape instanceof Contract\Validator, 'Expected shape field type to be a shape instance');
 
 			return $this->toSubValues($value, $definition, $shape);
 		}
@@ -398,8 +396,11 @@ final class ValidationRun
 		);
 	}
 
-	private function toSubValues(mixed $pristine, Field $definition, Contract\Shape $shape): ReadValue
-	{
+	private function toSubValues(
+		mixed $pristine,
+		Field $definition,
+		Contract\Validator $shape,
+	): ReadValue {
 		if (!is_array($pristine)) {
 			return new ReadValue(
 				new \Duon\Sire\Value($pristine, $pristine),
@@ -512,11 +513,11 @@ final class ValidationRun
 				continue;
 			}
 
-			foreach ($definition->validators as $validator) {
+			foreach ($definition->rules as $rule) {
 				$this->validateField(
 					$definition,
 					$values[$field],
-					$validator,
+					$rule,
 					$listIndex,
 				);
 			}

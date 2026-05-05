@@ -10,7 +10,7 @@ use Override;
 use ValueError;
 
 /** @api */
-final class Shape implements Contract\Parser, Contract\Shape
+final class Shape implements Contract\Parser, Contract\Validator
 {
 	private Config $config;
 
@@ -44,16 +44,16 @@ final class Shape implements Contract\Parser, Contract\Shape
 		return $this;
 	}
 
-	public function validator(string $name, Contract\Validator $validator): self
+	public function rule(string $name, Contract\Rule $rule): self
 	{
-		$this->config->validator($name, $validator);
+		$this->config->rule($name, $rule);
 
 		return $this;
 	}
 
-	public function validators(Contract\ValidatorRegistry $registry): self
+	public function rules(Contract\RuleRegistry $registry): self
 	{
-		$this->config->validators($registry);
+		$this->config->rules($registry);
 
 		return $this;
 	}
@@ -87,17 +87,17 @@ final class Shape implements Contract\Parser, Contract\Shape
 		return $this;
 	}
 
-	public function validatorParser(Contract\ValidatorParser $parser): self
+	public function ruleParser(Contract\RuleParser $parser): self
 	{
-		$this->config->validatorParser($parser);
+		$this->config->ruleParser($parser);
 
 		return $this;
 	}
 
 	public function add(
 		string $field,
-		string|Contract\Shape $type,
-		string ...$validators,
+		string|Contract\Validator $type,
+		string ...$rules,
 	): Field {
 		if (!$field) {
 			throw new ValueError(
@@ -105,9 +105,9 @@ final class Shape implements Contract\Parser, Contract\Shape
 			);
 		}
 
-		/** @var list<string> $validatorList */
-		$validatorList = $validators;
-		$definition = new Field($field, $type, $validatorList);
+		/** @var list<string> $ruleList */
+		$ruleList = $rules;
+		$definition = new Field($field, $type, $ruleList);
 
 		$this->fields[$field] = $definition;
 

@@ -17,9 +17,9 @@ final readonly class ShapeDefinition
 		public bool $list,
 		public Extra $extra,
 		public array $fields,
-		public Contract\ValidatorRegistry $validators,
+		public Contract\RuleRegistry $rules,
 		public Contract\CoercerRegistry $coercers,
-		public Contract\ValidatorParser $validatorParser,
+		public Contract\RuleParser $ruleParser,
 		public MessageFormatter $messageFormatter,
 		public array $reviewCallbacks,
 	) {}

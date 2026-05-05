@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Validator;
+namespace Duon\Sire\Rule;
 
 use Duon\Sire\Contract;
 use Duon\Sire\DslSplitter;
@@ -10,7 +10,7 @@ use Duon\Sire\Validation;
 use Override;
 
 /** @api */
-final class Allowed implements Contract\Validator
+final class Allowed implements Contract\Rule
 {
 	public string $message {
 		get => '{label} must be an allowed value';

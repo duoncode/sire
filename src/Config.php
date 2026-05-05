@@ -17,17 +17,17 @@ final class Config
 	/** @var array<string, string> */
 	private array $messages = [];
 
-	private ?Contract\ValidatorRegistry $validatorRegistry = null;
+	private ?Contract\RuleRegistry $ruleRegistry = null;
 
-	/** @var array<string, Contract\Validator> */
-	private array $validators = [];
+	/** @var array<string, Contract\Rule> */
+	private array $rules = [];
 
 	private ?Contract\CoercerRegistry $coercerRegistry = null;
 
 	/** @var array<string, Contract\Coercer> */
 	private array $coercers = [];
 
-	private ?Contract\ValidatorParser $validatorParser = null;
+	private ?Contract\RuleParser $ruleParser = null;
 
 	public function asList(bool $list = true): void
 	{
@@ -48,15 +48,15 @@ final class Config
 		));
 	}
 
-	public function validator(string $name, Contract\Validator $validator): void
+	public function rule(string $name, Contract\Rule $rule): void
 	{
-		$this->validators[$name] = $validator;
+		$this->rules[$name] = $rule;
 	}
 
-	public function validators(Contract\ValidatorRegistry $registry): void
+	public function rules(Contract\RuleRegistry $registry): void
 	{
-		$this->validatorRegistry = $registry;
-		$this->validators = [];
+		$this->ruleRegistry = $registry;
+		$this->rules = [];
 	}
 
 	public function coercer(string $name, Contract\Coercer $coercer): void
@@ -81,9 +81,9 @@ final class Config
 		$this->messages = array_replace($this->messages, $messages);
 	}
 
-	public function validatorParser(Contract\ValidatorParser $parser): void
+	public function ruleParser(Contract\RuleParser $parser): void
 	{
-		$this->validatorParser = $parser;
+		$this->ruleParser = $parser;
 	}
 
 	/**
@@ -96,9 +96,9 @@ final class Config
 			$this->list,
 			$this->extra,
 			$fields,
-			$this->resolvedValidatorRegistry(),
+			$this->resolvedRuleRegistry(),
 			$this->resolvedCoercerRegistry(),
-			$this->resolvedValidatorParser(),
+			$this->resolvedRuleParser(),
 			$this->messageFormatter(),
 			$reviewCallbacks,
 		);
@@ -109,15 +109,15 @@ final class Config
 		return new MessageFormatter($this->messages);
 	}
 
-	private function resolvedValidatorRegistry(): Contract\ValidatorRegistry
+	private function resolvedRuleRegistry(): Contract\RuleRegistry
 	{
-		$this->validatorRegistry ??= ValidatorRegistry::withDefaults();
+		$this->ruleRegistry ??= RuleRegistry::withDefaults();
 
-		if ($this->validators === []) {
-			return $this->validatorRegistry;
+		if ($this->rules === []) {
+			return $this->ruleRegistry;
 		}
 
-		return new ValidatorRegistry($this->validators, $this->validatorRegistry);
+		return new RuleRegistry($this->rules, $this->ruleRegistry);
 	}
 
 	private function resolvedCoercerRegistry(): Contract\CoercerRegistry
@@ -131,8 +131,8 @@ final class Config
 		return new CoercerRegistry($this->coercers, $this->coercerRegistry);
 	}
 
-	private function resolvedValidatorParser(): Contract\ValidatorParser
+	private function resolvedRuleParser(): Contract\RuleParser
 	{
-		return $this->validatorParser ??= new ValidatorParser();
+		return $this->ruleParser ??= new RuleParser();
 	}
 }

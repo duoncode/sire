@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Validator;
+namespace Duon\Sire\Rule;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Validation;
 use Override;
 
 /** @api */
-final class Maximum implements Contract\Validator
+final class Maximum implements Contract\Rule
 {
 	public string $message {
 		get => '{label} must be at most {arg1}';
