@@ -18,16 +18,16 @@ Start with the section that matches your current task. Each section focuses on o
 
 ## Core concepts
 
-Sire uses a shape object that defines fields, field types, and validators. A validation run returns a `Result` object with path-aware issues and coerced values.
+Sire uses a shape object that defines fields, field types, and rules. A validation run returns a `Result` object with path-aware issues and coerced values.
 
 - Define fields with `Shape::add()`.
 - Describe constraints with the string DSL, for example `required` or `min:10`.
-- Normalize present field input with `Rule::prepare()` before coercion and validation when needed.
+- Normalize present field input with `Field::prepare()` before coercion and validation when needed.
 - Add cross-field or post-validation checks with `Shape::review()` callbacks.
-- Compose reusable custom shapes through `Contract\Shape`.
+- Compose reusable custom shapes through `Contract\Validator`.
 - Call `Shape::validate()` to get a `Result`.
 - Call `Shape::parse()` to get valid values directly or throw a `ValidationError`.
-- Read `isValid()`, `issues()`, `messages()`, `first()`, and `values()` on the result.
+- Read `valid()`, `issues()`, `messages()`, `first()`, and `values()` on the result.
 
 ## Next steps
 

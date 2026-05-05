@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Validator;
+namespace Duon\Sire\Rule;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Validation;
 use Override;
 
 /** @api */
-final class Regex implements Contract\Validator
+final class Regex implements Contract\Rule
 {
 	public string $message {
 		get => '{label} has an invalid format';
@@ -18,7 +18,7 @@ final class Regex implements Contract\Validator
 	#[Override]
 	public function validate(Contract\Value $value, string ...$args): Contract\Validation
 	{
-		// As regex patterns could contain colons ':' and validator
+		// As regex patterns could contain colons ':' and rule
 		// args are separated by colons and split at their position
 		// we need to join them again
 		$pattern = implode(':', $args);

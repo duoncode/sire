@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Validator;
+namespace Duon\Sire\Rule;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Validation;

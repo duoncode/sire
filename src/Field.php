@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire;
 
 /** @api */
-final class Rule
+final class Field
 {
 	private ?string $label = null;
 
@@ -29,11 +29,11 @@ final class Rule
 	/** @var array<string, string> */
 	private array $messages = [];
 
-	/** @param list<string> $validators */
+	/** @param list<string> $rules */
 	public function __construct(
 		public readonly string $field,
-		public readonly string|Contract\Shape $type,
-		public readonly array $validators,
+		public readonly string|Contract\Validator $type,
+		public readonly array $rules,
 	) {}
 
 	public function label(string $label): static
@@ -207,10 +207,10 @@ final class Rule
 			return $key;
 		}
 
-		if (str_starts_with($key, 'type.') || str_starts_with($key, 'validator.')) {
+		if (str_starts_with($key, 'type.') || str_starts_with($key, 'rule.')) {
 			return $key;
 		}
 
-		return 'validator.' . $key;
+		return 'rule.' . $key;
 	}
 }

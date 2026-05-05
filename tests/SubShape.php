@@ -9,7 +9,7 @@ use Duon\Sire\Result;
 use Duon\Sire\Shape;
 use Override;
 
-final class SubShape implements Contract\Shape
+final class SubShape implements Contract\Validator
 {
 	private Shape $shape;
 

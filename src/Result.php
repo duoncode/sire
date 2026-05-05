@@ -19,7 +19,7 @@ final readonly class Result implements JsonSerializable
 		private array $values,
 	) {}
 
-	public function isValid(): bool
+	public function valid(): bool
 	{
 		return $this->issues === [];
 	}
@@ -73,7 +73,7 @@ final readonly class Result implements JsonSerializable
 	public function jsonSerialize(): array
 	{
 		return [
-			'valid' => $this->isValid(),
+			'valid' => $this->valid(),
 			'issues' => $this->issues,
 		];
 	}

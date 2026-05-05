@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Contract;
 
 /** @api */
-interface ValidatorRegistry
+interface RuleRegistry
 {
-	public function get(string $name): ?Validator;
+	public function get(string $name): ?Rule;
 }

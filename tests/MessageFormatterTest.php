@@ -47,7 +47,7 @@ class MessageFormatterTest extends TestCase
 	public function testFormatsDefaultArguments(): void
 	{
 		$formatter = new MessageFormatter([
-			'validator.min' => '{label} must be at least {arg1}',
+			'rule.min' => '{label} must be at least {arg1}',
 		]);
 
 		$message = $formatter->format(
@@ -55,7 +55,7 @@ class MessageFormatterTest extends TestCase
 			'Age',
 			'age',
 			'raw',
-			'validator.min',
+			'rule.min',
 			'Fallback',
 			['18'],
 		);

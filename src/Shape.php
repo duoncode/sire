@@ -10,12 +10,12 @@ use Override;
 use ValueError;
 
 /** @api */
-final class Shape implements Contract\Parser, Contract\Shape
+final class Shape implements Contract\Shape
 {
 	private Config $config;
 
-	/** @var array<string, Rule> */
-	private array $rules = [];
+	/** @var array<string, Field> */
+	private array $fields = [];
 
 	/** @var list<Closure(Review): void> */
 	private array $reviewCallbacks = [];
@@ -44,16 +44,16 @@ final class Shape implements Contract\Parser, Contract\Shape
 		return $this;
 	}
 
-	public function validator(string $name, Contract\Validator $validator): self
+	public function rule(string $name, Contract\Rule $rule): self
 	{
-		$this->config->validator($name, $validator);
+		$this->config->rule($name, $rule);
 
 		return $this;
 	}
 
-	public function validators(Contract\ValidatorRegistry $registry): self
+	public function rules(Contract\RuleRegistry $registry): self
 	{
-		$this->config->validators($registry);
+		$this->config->rules($registry);
 
 		return $this;
 	}
@@ -87,31 +87,31 @@ final class Shape implements Contract\Parser, Contract\Shape
 		return $this;
 	}
 
-	public function validatorParser(Contract\ValidatorParser $parser): self
+	public function ruleParser(Contract\RuleParser $parser): self
 	{
-		$this->config->validatorParser($parser);
+		$this->config->ruleParser($parser);
 
 		return $this;
 	}
 
 	public function add(
 		string $field,
-		string|Contract\Shape $type,
-		string ...$validators,
-	): Rule {
+		string|Contract\Validator $type,
+		string ...$rules,
+	): Field {
 		if (!$field) {
 			throw new ValueError(
 				'Shape definition error: field must not be empty',
 			);
 		}
 
-		/** @var list<string> $validatorList */
-		$validatorList = $validators;
-		$rule = new Rule($field, $type, $validatorList);
+		/** @var list<string> $ruleList */
+		$ruleList = $rules;
+		$definition = new Field($field, $type, $ruleList);
 
-		$this->rules[$field] = $rule;
+		$this->fields[$field] = $definition;
 
-		return $rule;
+		return $definition;
 	}
 
 	/** @param Closure(Review): void $callback */
@@ -140,7 +140,7 @@ final class Shape implements Contract\Parser, Contract\Shape
 	{
 		$result = $this->validate($data);
 
-		if (!$result->isValid()) {
+		if (!$result->valid()) {
 			throw new ValidationError($result);
 		}
 
@@ -149,6 +149,6 @@ final class Shape implements Contract\Parser, Contract\Shape
 
 	private function definition(): ShapeDefinition
 	{
-		return $this->config->definition($this->rules, $this->reviewCallbacks);
+		return $this->config->definition($this->fields, $this->reviewCallbacks);
 	}
 }

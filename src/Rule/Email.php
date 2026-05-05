@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Duon\Sire\Validator;
+namespace Duon\Sire\Rule;
 
 use Duon\Sire\Contract;
 use Duon\Sire\Validation;
 use Override;
 
 /** @api */
-final class Email implements Contract\Validator
+final class Email implements Contract\Rule
 {
 	public string $message {
 		get => '{label} must be a valid email address';

@@ -13,7 +13,7 @@ final readonly class MessageFormatter
 	) {}
 
 	/**
-	 * Message templates receive label, field, pristine value, then failure or validator arguments.
+	 * Message templates receive label, field, pristine value, then failure or rule arguments.
 	 *
 	 * @param list<mixed> $args
 	 * @param array<string, string> $messages
