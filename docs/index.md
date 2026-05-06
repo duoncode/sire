@@ -22,7 +22,8 @@ Sire uses a shape object that defines fields, field types, and rules. A validati
 
 - Define fields with `Shape::add()`.
 - Describe constraints with the string DSL, for example `required` or `min:10`.
-- Normalize present field input with `Field::prepare()` before coercion and validation when needed.
+- Normalize whole input payloads with `Shape::prepare()` before fields are read.
+- Normalize present field input with `Field::prepare()` before empty handling, coercion, and validation when needed.
 - Add cross-field or post-validation checks with `Shape::review()` callbacks.
 - Compose reusable custom shapes through `Contract\Validator`.
 - Call `Shape::validate()` to get a `Result`.

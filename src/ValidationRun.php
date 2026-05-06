@@ -12,6 +12,9 @@ final class ValidationRun
 {
 	private ErrorBag $errors;
 
+	/** @var array<string, true> */
+	private array $ruleBlockedPaths = [];
+
 	public function __construct(
 		private readonly ShapeDefinition $shape,
 		private readonly array $data,
@@ -21,7 +24,8 @@ final class ValidationRun
 
 	public function validate(): Result
 	{
-		$values = $this->readValues($this->data);
+		$data = $this->prepareData($this->data);
+		$values = $this->readValues($data);
 		$validatedValues = [];
 
 		if ($this->shape->list) {
@@ -50,6 +54,16 @@ final class ValidationRun
 		);
 	}
 
+	/** @return array<array-key, mixed> */
+	private function prepareData(array $data): array
+	{
+		foreach ($this->shape->prepareCallbacks as $prepare) {
+			$data = $prepare($data);
+		}
+
+		return $data;
+	}
+
 	private function validateField(
 		Field $definition,
 		Value $value,
@@ -66,6 +80,10 @@ final class ValidationRun
 			throw new ValueError(
 				sprintf('Unknown rule "%s" in field "%s"', $ruleName, $definition->field),
 			);
+		}
+
+		if ($this->rulesBlocked($definition->field, $listIndex)) {
+			return;
 		}
 
 		if (!$rule instanceof Contract\ValidatesEmpty && $value->empty) {
@@ -176,19 +194,14 @@ final class ValidationRun
 		array $data,
 		string|int|null $listIndex,
 	): ?Value {
+		$value = $definition->applyPreparation($value, $data);
+
 		if ($definition->isBlank($value)) {
 			return $this->readEmptyValue($field, $definition, $data, $listIndex);
 		}
 
-		$read = $this->readKnownValue($definition, $value, $data);
-
-		if ($read->nestedResult !== null) {
-			$this->errors->addNested(self::path($field, $listIndex), $read->nestedResult);
-		}
-
-		if ($read->issue !== null) {
-			$this->errors->add(self::path($field, $listIndex), $read->issue);
-		}
+		$read = $this->readKnownValue($definition, $value);
+		$this->addReadErrors($field, $read, $listIndex);
 
 		return $read->value;
 	}
@@ -223,17 +236,24 @@ final class ValidationRun
 		array $data,
 		string|int|null $listIndex,
 	): Value {
-		$read = $this->readKnownValue($definition, $definition->defaultValue(), $data);
+		$value = $definition->applyPreparation($definition->defaultValue(), $data);
+		$read = $this->readKnownValue($definition, $value);
+		$this->addReadErrors($field, $read, $listIndex);
 
+		return $read->value;
+	}
+
+	private function addReadErrors(string $field, ReadValue $read, string|int|null $listIndex): void
+	{
 		if ($read->nestedResult !== null) {
 			$this->errors->addNested(self::path($field, $listIndex), $read->nestedResult);
+			$this->blockRules($field, $listIndex);
 		}
 
 		if ($read->issue !== null) {
 			$this->errors->add(self::path($field, $listIndex), $read->issue);
+			$this->blockRules($field, $listIndex);
 		}
-
-		return $read->value;
 	}
 
 	private function readExtraValue(string $field, mixed $value, string|int|null $listIndex): ?Value
@@ -252,11 +272,8 @@ final class ValidationRun
 		return null;
 	}
 
-	/** @param array<string, mixed> $data */
-	private function readKnownValue(Field $definition, mixed $value, array $data): ReadValue
+	private function readKnownValue(Field $definition, mixed $value): ReadValue
 	{
-		$value = $definition->applyPreparation($value, $data);
-
 		if ($value === null) {
 			return new ReadValue(
 				new \Duon\Sire\Value(null, null, true),
@@ -535,6 +552,19 @@ final class ValidationRun
 		);
 	}
 
+	private function blockRules(string $field, string|int|null $listIndex): void
+	{
+		$this->ruleBlockedPaths[self::pathKey(self::path($field, $listIndex))] = true;
+	}
+
+	private function rulesBlocked(string $field, string|int|null $listIndex): bool
+	{
+		return array_key_exists(
+			self::pathKey(self::path($field, $listIndex)),
+			$this->ruleBlockedPaths,
+		);
+	}
+
 	/** @return list<string|int> */
 	private static function path(string $field, string|int|null $listIndex): array
 	{
@@ -543,6 +573,12 @@ final class ValidationRun
 		}
 
 		return [$listIndex, $field];
+	}
+
+	/** @param list<string|int> $path */
+	private static function pathKey(array $path): string
+	{
+		return serialize($path);
 	}
 
 	private static function isRawEmptyValue(mixed $value): bool

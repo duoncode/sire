@@ -140,7 +140,7 @@ $result = $shape->validate([]);
 var_dump($result->values()); // []
 ```
 
-Use `default()` when an empty field should be filled. By default, only missing input counts as empty. Defaults run through preparation, coercion, rules, and finalizers. Present non-empty input wins over the default.
+Use `default()` when an empty field should be filled. By default, only missing input counts as empty. Defaults run through the same preparation, nullability, coercion or nested validation, rule, and finalization pipeline as submitted values. Present non-empty input wins over the default.
 
 ```php
 <?php
@@ -156,7 +156,7 @@ $result = $shape->validate([]);
 var_dump($result->values()); // ['status' => 'draft', 'count' => 0]
 ```
 
-Use `empty()` to configure which raw input states count as empty for a field. Empty values are handled before preparation. They use the default when one exists, are omitted when the field is optional, or report the normal missing-field error otherwise. The enum is named `Blank` because `empty` is a PHP language construct.
+Use `empty()` to configure which field value states count as empty for a field. Present values run through `prepare()` first, then Sire checks them against the configured empty states. Missing input is handled separately because there is no value to prepare. Empty values use the default when one exists, are omitted when the field is optional, or report the normal missing-field error otherwise. The enum is named `Blank` because `empty` is a PHP language construct.
 
 ```php
 <?php
@@ -177,10 +177,10 @@ var_dump($shape->validate(['status' => '  '])->values()['status']); // "draft"
 `empty()` replaces the field's empty-value set. Include `Blank::Missing` when a default should still apply to missing input.
 
 - `Blank::Missing` matches an absent field.
-- `Blank::Null` matches explicit `null`.
-- `Blank::String` matches exact `''`.
-- `Blank::Whitespace` matches strings where `trim($value) === ''`, including `''`.
-- `Blank::List` matches exact `[]`.
+- `Blank::Null` matches explicit `null` after preparation.
+- `Blank::String` matches exact `''` after preparation.
+- `Blank::Whitespace` matches strings where `trim($value) === ''`, including `''`, after preparation.
+- `Blank::List` matches exact `[]` after preparation.
 
 You can pass enum cases or strings such as `'null'` and `'whitespace'`.
 
@@ -197,13 +197,54 @@ $shape->add('discount_code', 'text', 'maxlen:64')
     ->nullable();
 ```
 
-The `required` rule checks the coerced value's `Value::$empty` flag. Built-in coercers mark `null` as empty; `text` also marks `''` as empty, and `list` also marks `[]` as empty. They treat successful values such as `false`, `0`, `0.0`, and `'0'` as present. Blank strings are valid empty text values, but they are type errors for `bool`, `int`, `float`, `number`, and `list` unless field-level raw empty handling catches them first. Custom coercers control this flag through `Coercion`.
+The `required` rule checks the coerced value's `Value::$empty` flag. Built-in coercers mark `null` as empty; `text` also marks `''` as empty, and `list` also marks `[]` as empty. They treat successful values such as `false`, `0`, `0.0`, and `'0'` as present. Blank strings are valid empty text values, but they are type errors for `bool`, `int`, `float`, `number`, and `list` unless field-level empty handling catches them first. Field rules, including `required`, do not run after failed coercion or failed nested validation. Custom coercers control this flag through `Coercion`.
 
-For each field, Sire applies raw empty handling first, then `default()` or `optional()` if needed, then `prepare()`, nullability, coercion or nested validation, field rules, `finalize()`, and finally review callbacks.
+For a validation run, Sire applies shape preparation first. For present fields, Sire then applies field preparation, field-level empty handling, `default()` or `optional()` if needed, nullability, coercion or nested validation, field rules, `finalize()`, and finally review callbacks. Missing fields do not run field preparation unless a default is used. Defaults run through field preparation, nullability, coercion or nested validation, rules, and finalizers.
 
-## Prepare input before validation
+## Prepare shape input before fields
 
-Use `Field::prepare()` when a field value needs normalization before Sire casts or validates it. Prepare callbacks run in registration order for present fields and for fields filled by `default()`. They do not run for missing `optional()` fields or missing fields that report an error.
+Use `Shape::prepare()` when the whole input payload needs migration or normalization before Sire reads fields, handles extra fields, or validates list items. Shape prepare callbacks run in registration order and receive the current shape input array. They must return the next input array.
+
+```php
+<?php
+
+use Duon\Sire\Extra;
+use Duon\Sire\Shape;
+
+$shape = (new Shape())
+    ->extra(Extra::Forbid)
+    ->prepare(static function (array $data): array {
+        if (array_key_exists('firstName', $data) && !array_key_exists('first_name', $data)) {
+            $data['first_name'] = $data['firstName'];
+            unset($data['firstName']);
+        }
+
+        return $data;
+    });
+
+$shape->add('first_name', 'text');
+```
+
+For `Shape::list()`, the callback receives the whole list, not each item. Map the list inside the callback when you need per-item migration.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$users = Shape::list()->prepare(static fn(array $items): array => array_map(
+    static fn(mixed $item): array => is_string($item) ? ['email' => $item] : $item,
+    $items,
+));
+
+$users->add('email', 'text', 'email');
+```
+
+If a shape prepare callback throws, the exception is not caught by Sire.
+
+## Prepare field values before validation
+
+Use `Field::prepare()` when a field value needs normalization before Sire checks field-level emptiness, casts, or validates it. Field prepare callbacks run in registration order for present fields and for fields filled by `default()`. They receive the input data after shape preparation. They do not run for missing `optional()` fields or missing fields that report an error.
 
 ```php
 <?php
@@ -220,7 +261,7 @@ $result = $shape->validate(['age' => ' 21 ']);
 var_dump($result->values()['age']); // 21
 ```
 
-Prepare callbacks receive the current field value and the raw input data for the current shape item. This lets you derive a value from another field before validation.
+Field prepare callbacks receive the current field value and the current shape item data after shape preparation. This lets you derive a value from another field before validation. If the prepared value matches the field's `empty()` configuration, Sire applies `default()`, omits an optional field, or reports the normal missing-field error before coercion.
 
 ```php
 <?php
@@ -260,11 +301,11 @@ $user
     ->prepare(static fn(mixed $value): mixed => $value ?? []);
 ```
 
-If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the field type, normal coercion or nested validation reports the validation error.
+If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the field type, normal coercion or nested validation reports the validation error and field rules do not run for that value.
 
 ## Finalize output after validation
 
-Use `Field::finalize()` when a field needs a final output transform after coercion and field rules. Finalize callbacks run only when validation has no errors, before review callbacks, and in registration order for each field.
+Use `Field::finalize()` when a field needs a final output transform after successful coercion or nested validation and field rules. Finalize callbacks run only when validation has no errors, before review callbacks, and in registration order for each field.
 
 ```php
 <?php
@@ -456,7 +497,7 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `messages()` to override many type, rule, or extra-field messages.
 - Use `ruleParser()` if you need a different DSL split strategy.
 
-Custom rules implement `Duon\Sire\Contract\Rule`, expose a default `message`, and return `Duon\Sire\Contract\Validation`; use `Duon\Sire\Validation` when the default immutable result object is enough. Rules skip values where `Contract\Value::$empty` is `true` by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a rule must run for empty values. Custom coercers implement `Duon\Sire\Contract\Coercer`, expose a default `message`, and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Pass `empty: true` to `Coercion` when the coerced value has no meaningful content for its type. Return `Failure::invalid()` when a coercer or rule cannot produce a valid value. Use `Failure::key()` only when one coercer or rule has multiple distinct failure modes.
+Custom rules implement `Duon\Sire\Contract\Rule`, expose a default `message`, and return `Duon\Sire\Contract\Validation`; use `Duon\Sire\Validation` when the default immutable result object is enough. Rules do not run after failed coercion or failed nested validation. Rules also skip values where `Contract\Value::$empty` is `true` by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a rule must run for successfully typed empty values. Custom coercers implement `Duon\Sire\Contract\Coercer`, expose a default `message`, and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Pass `empty: true` to `Coercion` when the coerced value has no meaningful content for its type. Return `Failure::invalid()` when a coercer or rule cannot produce a valid value. Use `Failure::key()` only when one coercer or rule has multiple distinct failure modes.
 
 ```php
 <?php

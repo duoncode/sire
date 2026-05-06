@@ -88,10 +88,14 @@ final class Config
 
 	/**
 	 * @param array<string, Field> $fields
+	 * @param list<Closure(array<array-key, mixed>): array<array-key, mixed>> $prepareCallbacks
 	 * @param list<Closure(Review): void> $reviewCallbacks
 	 */
-	public function definition(array $fields, array $reviewCallbacks): ShapeDefinition
-	{
+	public function definition(
+		array $fields,
+		array $prepareCallbacks,
+		array $reviewCallbacks,
+	): ShapeDefinition {
 		return new ShapeDefinition(
 			$this->list,
 			$this->extra,
@@ -100,6 +104,7 @@ final class Config
 			$this->resolvedCoercerRegistry(),
 			$this->resolvedRuleParser(),
 			$this->messageFormatter(),
+			$prepareCallbacks,
 			$reviewCallbacks,
 		);
 	}
