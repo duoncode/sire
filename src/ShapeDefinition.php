@@ -11,6 +11,7 @@ final readonly class ShapeDefinition
 {
 	/**
 	 * @param array<string, Field> $fields
+	 * @param list<Closure(array<array-key, mixed>): array<array-key, mixed>> $prepareCallbacks
 	 * @param list<Closure(Review): void> $reviewCallbacks
 	 */
 	public function __construct(
@@ -21,6 +22,7 @@ final readonly class ShapeDefinition
 		public Contract\CoercerRegistry $coercers,
 		public Contract\RuleParser $ruleParser,
 		public MessageFormatter $messageFormatter,
+		public array $prepareCallbacks,
 		public array $reviewCallbacks,
 	) {}
 }

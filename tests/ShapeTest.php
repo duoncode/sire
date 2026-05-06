@@ -570,6 +570,51 @@ class ShapeTest extends TestCase
 		$this->assertSame([], $result->values());
 	}
 
+	public function testShapePreparationRunsBeforeReadingFieldsAndExtras(): void
+	{
+		$shape = new Shape()
+			->extra(Extra::Forbid)
+			->prepare(static function (array $data): array {
+				self::assertSame(['firstName' => 'Ada', 'age' => '37'], $data);
+
+				return [
+					'first_name' => $data['firstName'],
+					'age' => $data['age'],
+				];
+			});
+		$shape->add('first_name', 'text');
+		$shape->add('age', 'int');
+
+		$result = $shape->validate(['firstName' => 'Ada', 'age' => '37']);
+
+		$this->assertTrue($result->valid());
+		$this->assertSame(['first_name' => 'Ada', 'age' => 37], $result->values());
+	}
+
+	public function testListShapePreparationReceivesWholeInput(): void
+	{
+		$shape = Shape::list()->prepare(static function (array $data): array {
+			self::assertSame(['Ada', 'Grace'], $data);
+
+			return array_map(
+				static fn(mixed $name): array => ['name' => $name],
+				$data,
+			);
+		});
+		$shape->add('name', 'text');
+
+		$result = $shape->validate(['Ada', 'Grace']);
+
+		$this->assertTrue($result->valid());
+		$this->assertSame(
+			[
+				['name' => 'Ada'],
+				['name' => 'Grace'],
+			],
+			$result->values(),
+		);
+	}
+
 	public function testUnknownData(): void
 	{
 		$testData = [

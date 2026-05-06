@@ -17,6 +17,9 @@ final class Shape implements Contract\Shape
 	/** @var array<string, Field> */
 	private array $fields = [];
 
+	/** @var list<Closure(array<array-key, mixed>): array<array-key, mixed>> */
+	private array $prepareCallbacks = [];
+
 	/** @var list<Closure(Review): void> */
 	private array $reviewCallbacks = [];
 
@@ -94,6 +97,14 @@ final class Shape implements Contract\Shape
 		return $this;
 	}
 
+	/** @param Closure(array<array-key, mixed>): array<array-key, mixed> $callback */
+	public function prepare(Closure $callback): self
+	{
+		$this->prepareCallbacks[] = $callback;
+
+		return $this;
+	}
+
 	public function add(
 		string $field,
 		string|Contract\Validator $type,
@@ -149,6 +160,10 @@ final class Shape implements Contract\Shape
 
 	private function definition(): ShapeDefinition
 	{
-		return $this->config->definition($this->fields, $this->reviewCallbacks);
+		return $this->config->definition(
+			$this->fields,
+			$this->prepareCallbacks,
+			$this->reviewCallbacks,
+		);
 	}
 }

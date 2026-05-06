@@ -199,11 +199,52 @@ $shape->add('discount_code', 'text', 'maxlen:64')
 
 The `required` rule checks the coerced value's `Value::$empty` flag. Built-in coercers mark `null` as empty; `text` also marks `''` as empty, and `list` also marks `[]` as empty. They treat successful values such as `false`, `0`, `0.0`, and `'0'` as present. Blank strings are valid empty text values, but they are type errors for `bool`, `int`, `float`, `number`, and `list` unless field-level empty handling catches them first. Field rules, including `required`, do not run after failed coercion or failed nested validation. Custom coercers control this flag through `Coercion`.
 
-For present fields, Sire applies `prepare()` first, then field-level empty handling, then `default()` or `optional()` if needed, nullability, coercion or nested validation, field rules, `finalize()`, and finally review callbacks. Missing fields do not run preparation unless a default is used. Defaults run through preparation, nullability, coercion or nested validation, rules, and finalizers.
+For a validation run, Sire applies shape preparation first. For present fields, Sire then applies field preparation, field-level empty handling, `default()` or `optional()` if needed, nullability, coercion or nested validation, field rules, `finalize()`, and finally review callbacks. Missing fields do not run field preparation unless a default is used. Defaults run through field preparation, nullability, coercion or nested validation, rules, and finalizers.
 
-## Prepare input before validation
+## Prepare shape input before fields
 
-Use `Field::prepare()` when a field value needs normalization before Sire checks field-level emptiness, casts, or validates it. Prepare callbacks run in registration order for present fields and for fields filled by `default()`. They do not run for missing `optional()` fields or missing fields that report an error.
+Use `Shape::prepare()` when the whole input payload needs migration or normalization before Sire reads fields, handles extra fields, or validates list items. Shape prepare callbacks run in registration order and receive the current shape input array. They must return the next input array.
+
+```php
+<?php
+
+use Duon\Sire\Extra;
+use Duon\Sire\Shape;
+
+$shape = (new Shape())
+    ->extra(Extra::Forbid)
+    ->prepare(static function (array $data): array {
+        if (array_key_exists('firstName', $data) && !array_key_exists('first_name', $data)) {
+            $data['first_name'] = $data['firstName'];
+            unset($data['firstName']);
+        }
+
+        return $data;
+    });
+
+$shape->add('first_name', 'text');
+```
+
+For `Shape::list()`, the callback receives the whole list, not each item. Map the list inside the callback when you need per-item migration.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$users = Shape::list()->prepare(static fn(array $items): array => array_map(
+    static fn(mixed $item): array => is_string($item) ? ['email' => $item] : $item,
+    $items,
+));
+
+$users->add('email', 'text', 'email');
+```
+
+If a shape prepare callback throws, the exception is not caught by Sire.
+
+## Prepare field values before validation
+
+Use `Field::prepare()` when a field value needs normalization before Sire checks field-level emptiness, casts, or validates it. Field prepare callbacks run in registration order for present fields and for fields filled by `default()`. They receive the input data after shape preparation. They do not run for missing `optional()` fields or missing fields that report an error.
 
 ```php
 <?php
@@ -220,7 +261,7 @@ $result = $shape->validate(['age' => ' 21 ']);
 var_dump($result->values()['age']); // 21
 ```
 
-Prepare callbacks receive the current field value and the raw input data for the current shape item. This lets you derive a value from another field before validation. If the prepared value matches the field's `empty()` configuration, Sire applies `default()`, omits an optional field, or reports the normal missing-field error before coercion.
+Field prepare callbacks receive the current field value and the current shape item data after shape preparation. This lets you derive a value from another field before validation. If the prepared value matches the field's `empty()` configuration, Sire applies `default()`, omits an optional field, or reports the normal missing-field error before coercion.
 
 ```php
 <?php

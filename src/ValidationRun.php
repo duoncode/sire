@@ -24,7 +24,8 @@ final class ValidationRun
 
 	public function validate(): Result
 	{
-		$values = $this->readValues($this->data);
+		$data = $this->prepareData($this->data);
+		$values = $this->readValues($data);
 		$validatedValues = [];
 
 		if ($this->shape->list) {
@@ -51,6 +52,16 @@ final class ValidationRun
 			$this->errors->issues(),
 			$extractedValues,
 		);
+	}
+
+	/** @return array<array-key, mixed> */
+	private function prepareData(array $data): array
+	{
+		foreach ($this->shape->prepareCallbacks as $prepare) {
+			$data = $prepare($data);
+		}
+
+		return $data;
 	}
 
 	private function validateField(
