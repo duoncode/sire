@@ -112,7 +112,22 @@ class EmptyTest extends TestCase
 		$this->assertSame(['draft'], $result->values()['items']);
 	}
 
-	public function testFieldEmptyNullOptionalOmitsNullWithoutPreparation(): void
+	public function testFieldPreparationRunsBeforeEmptyDefault(): void
+	{
+		$shape = new Shape();
+		$shape
+			->add('status', 'text')
+			->empty(Blank::String)
+			->default('draft')
+			->prepare(static fn(mixed $value): string => trim((string) $value));
+
+		$result = $shape->validate(['status' => '   ']);
+
+		$this->assertTrue($result->valid());
+		$this->assertSame('draft', $result->values()['status']);
+	}
+
+	public function testFieldEmptyNullOptionalOmitsNullAfterPreparation(): void
 	{
 		$called = false;
 		$shape = new Shape();
@@ -129,7 +144,7 @@ class EmptyTest extends TestCase
 		$result = $shape->validate(['name' => null]);
 
 		$this->assertTrue($result->valid());
-		$this->assertFalse($called);
+		$this->assertTrue($called);
 		$this->assertSame([], $result->values());
 	}
 

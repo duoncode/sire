@@ -223,6 +223,90 @@ class ShapeTest extends TestCase
 		$this->assertTrue($result->valid());
 	}
 
+	public function testInvalidTypeSkipsFieldRules(): void
+	{
+		$shape = new Shape();
+		$shape->add('blank_age', 'int', 'required');
+		$shape->add('old_age', 'int', 'min:18');
+
+		$result = $shape->validate([
+			'blank_age' => '',
+			'old_age' => 'old',
+		]);
+
+		$this->assertFalse($result->valid());
+		$this->assertCount(2, $result->issues());
+		$this->assertSame('blank_age must be a whole number', $result->first('blank_age'));
+		$this->assertSame('old_age must be a whole number', $result->first('old_age'));
+		$this->assertSame(
+			['type.int', 'type.int'],
+			array_map(static fn($issue): string => $issue->code, $result->issues()),
+		);
+	}
+
+	public function testCustomRuleDoesNotRunAfterTypeFailure(): void
+	{
+		$rule = new class implements Rule {
+			public bool $called = false;
+
+			public string $message {
+				get => 'Should not run';
+			}
+
+			#[Override]
+			public function validate(Value $value, string ...$args): \Duon\Sire\Contract\Validation
+			{
+				$this->called = true;
+
+				return Validation::invalid();
+			}
+		};
+
+		$shape = new Shape();
+		$shape->rule('tracked', $rule);
+		$shape->add('age', 'int', 'tracked');
+
+		$result = $shape->validate(['age' => 'old']);
+
+		$this->assertFalse($result->valid());
+		$this->assertFalse($rule->called);
+		$this->assertCount(1, $result->issues());
+		$this->assertSame('age must be a whole number', $result->first('age'));
+	}
+
+	public function testParentRulesDoNotRunAfterNestedValidationFailure(): void
+	{
+		$rule = new class implements Rule {
+			public bool $called = false;
+
+			public string $message {
+				get => 'Should not run';
+			}
+
+			#[Override]
+			public function validate(Value $value, string ...$args): \Duon\Sire\Contract\Validation
+			{
+				$this->called = true;
+
+				return Validation::invalid();
+			}
+		};
+
+		$nested = new Shape();
+		$nested->add('email', 'text', 'email');
+
+		$shape = new Shape();
+		$shape->rule('tracked', $rule);
+		$shape->add('child', $nested, 'tracked');
+
+		$result = $shape->validate(['child' => ['email' => 'invalid']]);
+
+		$this->assertFalse($result->valid());
+		$this->assertFalse($rule->called);
+		$this->assertCount(1, $result->issues());
+		$this->assertSame('email must be a valid email address', $result->first('child.email'));
+	}
+
 	public function testTypeList(): void
 	{
 		$shape = new Shape();
