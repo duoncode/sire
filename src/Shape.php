@@ -47,6 +47,20 @@ final class Shape implements Contract\Shape
 		return $this;
 	}
 
+	public function strict(): self
+	{
+		$this->config->coercionMode(CoercionMode::Strict);
+
+		return $this;
+	}
+
+	public function coerce(): self
+	{
+		$this->config->coercionMode(CoercionMode::Coerce);
+
+		return $this;
+	}
+
 	public function rule(string $name, Contract\Rule $rule): self
 	{
 		$this->config->rule($name, $rule);

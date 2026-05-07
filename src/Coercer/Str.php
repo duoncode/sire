@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Coercion;
+use Duon\Sire\CoercionMode;
 use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Override;
@@ -18,19 +19,41 @@ final class Str implements Contract\Coercer
 	}
 
 	#[Override]
-	public function coerce(mixed $pristine): Contract\Coercion
-	{
+	public function coerce(
+		mixed $pristine,
+		CoercionMode $mode = CoercionMode::Coerce,
+	): Contract\Coercion {
+		if ($mode === CoercionMode::Strict) {
+			return self::coerceStrict($pristine);
+		}
+
 		if (!self::isCoercible($pristine)) {
-			return new Coercion(
-				$pristine,
-				$pristine,
-				Failure::invalid(),
-			);
+			return self::invalid($pristine);
 		}
 
 		$value = self::toString($pristine);
 
 		return new Coercion($value, $pristine, empty: self::isEmpty($value));
+	}
+
+	private static function coerceStrict(mixed $pristine): Coercion
+	{
+		if ($pristine === null) {
+			return new Coercion(null, null, empty: true);
+		}
+
+		return is_string($pristine)
+			? new Coercion($pristine, $pristine, empty: self::isEmpty($pristine))
+			: self::invalid($pristine);
+	}
+
+	private static function invalid(mixed $pristine): Coercion
+	{
+		return new Coercion(
+			$pristine,
+			$pristine,
+			Failure::invalid(),
+		);
 	}
 
 	private static function isCoercible(mixed $value): bool

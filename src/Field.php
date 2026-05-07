@@ -7,6 +7,12 @@ namespace Duon\Sire;
 /** @api */
 final class Field
 {
+	private const int FLAG_HAS_DEFAULT = 1;
+
+	private const int FLAG_NULLABLE = 2;
+
+	private const int FLAG_OPTIONAL = 4;
+
 	private ?string $label = null;
 
 	/** @var list<callable> */
@@ -18,13 +24,11 @@ final class Field
 	/** @var list<Blank> */
 	private array $empty = [Blank::Missing];
 
-	private bool $hasDefault = false;
+	private int $flags = 0;
 
 	private mixed $default = null;
 
-	private bool $nullable = false;
-
-	private bool $optional = false;
+	private ?CoercionMode $coercionMode = null;
 
 	/** @var array<string, string> */
 	private array $messages = [];
@@ -83,7 +87,7 @@ final class Field
 	public function default(mixed $value): static
 	{
 		$this->default = $value;
-		$this->hasDefault = true;
+		$this->flags |= self::FLAG_HAS_DEFAULT;
 
 		if ($value === null) {
 			$this->nullable();
@@ -94,21 +98,35 @@ final class Field
 
 	public function nullable(): static
 	{
-		$this->nullable = true;
+		$this->flags |= self::FLAG_NULLABLE;
 
 		return $this;
 	}
 
 	public function optional(): static
 	{
-		$this->optional = true;
+		$this->flags |= self::FLAG_OPTIONAL;
+
+		return $this;
+	}
+
+	public function strict(): static
+	{
+		$this->coercionMode = CoercionMode::Strict;
+
+		return $this;
+	}
+
+	public function coerce(): static
+	{
+		$this->coercionMode = CoercionMode::Coerce;
 
 		return $this;
 	}
 
 	public function hasDefault(): bool
 	{
-		return $this->hasDefault;
+		return ($this->flags & self::FLAG_HAS_DEFAULT) !== 0;
 	}
 
 	public function defaultValue(): mixed
@@ -118,12 +136,18 @@ final class Field
 
 	public function isNullable(): bool
 	{
-		return $this->nullable;
+		return ($this->flags & self::FLAG_NULLABLE) !== 0;
 	}
 
 	public function isOptional(): bool
 	{
-		return $this->optional;
+		return ($this->flags & self::FLAG_OPTIONAL) !== 0;
+	}
+
+	/** @internal */
+	public function coercionMode(CoercionMode $default): CoercionMode
+	{
+		return $this->coercionMode ?? $default;
 	}
 
 	public function treatsMissingAsEmpty(): bool

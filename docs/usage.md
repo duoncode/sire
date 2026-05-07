@@ -69,6 +69,20 @@ $shape = Shape::list()
 
 Use `asList(false)` to switch a configured list shape back to object mode.
 
+Sire coerces field values by default. Use `strict()` when fields should reject values that are not already the target PHP type, and use `coerce()` to switch back to coercing mode. Shape-level mode applies to fields on that shape; field-level mode overrides the shape default.
+
+```php
+<?php
+
+use Duon\Sire\Shape;
+
+$shape = (new Shape())->strict();
+$shape->add('age', 'int'); // accepts only native ints
+$shape->add('count', 'int')->coerce(); // accepts numeric strings too
+```
+
+Strict mode checks the prepared or defaulted value after field-level empty handling. For `float`, strict mode accepts only native floats. Use `number` when native integers and floats should both be valid. Nested shapes use their own coercion mode configuration.
+
 `extra()` controls input fields that do not have a field:
 
 - `Extra::Ignore` drops extra fields. This is the default.
@@ -84,9 +98,9 @@ Sire supports a small set of built-in types and rules out of the box, so you can
 - Built-in types: `string`, `int`, `float`, `number`, `bool`, `list`
 - Built-in rules: `required`, `email`, `minlen`, `maxlen`, `min`, `max`, `regex`, `in`
 
-`string` accepts strings, numbers, and stringable objects. It preserves string values, including `''` and `'0'`, and rejects booleans, arrays, and non-stringable objects.
+`string` accepts strings, numbers, and stringable objects in coercing mode. It preserves string values, including `''` and `'0'`, and rejects booleans, arrays, and non-stringable objects. In strict mode, it accepts only native strings.
 
-`bool` accepts only native booleans after field presence and null handling. `null` is controlled by `nullable()` and is the only empty bool value; missing fields are controlled by `default()` and `optional()`. Boolean-like strings and numbers such as `'true'`, `'false'`, `'1'`, `'0'`, `1`, and `0` fail type validation.
+`bool` accepts common PHP and HTML form boolean values in coercing mode: `true`, `false`, `1`, `0`, `'1'`, `'0'`, `'true'`, `'false'`, `'on'`, `'off'`, `'yes'`, and `'no'`. String values are trimmed and matched case-insensitively. In strict mode, it accepts only native booleans. `null` is controlled by `nullable()`; missing fields are controlled by `default()` and `optional()`. Empty strings still fail type validation unless field-level `empty()` handling catches them first.
 
 Add rules to a field with `Field::rules()`. The rule DSL uses `:` to separate the rule name from arguments.
 
@@ -95,7 +109,7 @@ Add rules to a field with `Field::rules()`. The rule DSL uses `:` to separate th
 - `email:checkdns`
 - `in:active,inactive`
 
-The `in` rule uses strict comparison against the cast value. Prepare or cast input to the expected type before using `in` for non-string values.
+The `in` rule uses strict comparison against the typed value. Prepare or coerce input to the expected type before using `in` for non-string values.
 
 ## Use quoted and escaped DSL arguments
 
@@ -140,7 +154,7 @@ $result = $shape->validate([]);
 var_dump($result->values()); // []
 ```
 
-Use `default()` when an empty field should be filled. By default, only missing input counts as empty. Defaults run through the same preparation, nullability, coercion or nested validation, rule, and finalization pipeline as submitted values. Present non-empty input wins over the default.
+Use `default()` when an empty field should be filled. By default, only missing input counts as empty. Defaults run through the same preparation, nullability, type handling or nested validation, rule, and finalization pipeline as submitted values. Present non-empty input wins over the default.
 
 ```php
 <?php
@@ -195,9 +209,9 @@ $shape = new Shape();
 $shape->add('discount_code', 'string')->rules('maxlen:64') ->default('') ->nullable();
 ```
 
-The `required` rule checks the coerced value's `Value::$empty` flag. Built-in coercers mark `null` as empty; `string` also marks `''` as empty, and `list` also marks `[]` as empty. They treat successful values such as `false`, `0`, `0.0`, and `'0'` as present. Blank strings are valid empty string values, but they are type errors for `bool`, `int`, `float`, `number`, and `list` unless field-level empty handling catches them first. Field rules, including `required`, do not run after failed coercion or failed nested validation. Custom coercers control this flag through `Coercion`.
+The `required` rule checks the typed value's `Value::$empty` flag. Built-in coercers mark `null` as empty; `string` also marks `''` as empty, and `list` also marks `[]` as empty. They treat successful values such as `false`, `0`, `0.0`, `'0'`, `'false'`, `'off'`, and `'no'` as present. Blank strings are valid empty string values, but they are type errors for `bool`, `int`, `float`, `number`, and `list` unless field-level empty handling catches them first. Field rules, including `required`, do not run after failed type coercion, failed strict type checks, or failed nested validation. Custom coercers control this flag through `Coercion`.
 
-For a validation run, Sire applies shape preparation first. For present fields, Sire then applies field preparation, field-level empty handling, `default()` or `optional()` if needed, nullability, coercion or nested validation, field rules, `finalize()`, and finally review callbacks. Missing fields do not run field preparation unless a default is used. Defaults run through field preparation, nullability, coercion or nested validation, rules, and finalizers.
+For a validation run, Sire applies shape preparation first. For present fields, Sire then applies field preparation, field-level empty handling, `default()` or `optional()` if needed, nullability, type coercion or strict type checking, nested validation when the field type is a shape, field rules, `finalize()`, and finally review callbacks. Missing fields do not run field preparation unless a default is used. Defaults run through field preparation, nullability, type handling or nested validation, rules, and finalizers.
 
 ## Prepare shape input before fields
 
@@ -242,7 +256,7 @@ If a shape prepare callback throws, the exception is not caught by Sire.
 
 ## Prepare field values before validation
 
-Use `Field::prepare()` when a field value needs normalization before Sire checks field-level emptiness, casts, or validates it. Field prepare callbacks run in registration order for present fields and for fields filled by `default()`. They receive the input data after shape preparation. They do not run for missing `optional()` fields or missing fields that report an error.
+Use `Field::prepare()` when a field value needs normalization before Sire checks field-level emptiness, coerces or strictly checks the type, or validates it. Field prepare callbacks run in registration order for present fields and for fields filled by `default()`. They receive the input data after shape preparation. They do not run for missing `optional()` fields or missing fields that report an error.
 
 ```php
 <?php
@@ -299,11 +313,11 @@ $user
     ->prepare(static fn(mixed $value): mixed => $value ?? []);
 ```
 
-If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the field type, normal coercion or nested validation reports the validation error and field rules do not run for that value.
+If a prepare callback throws, the exception is not caught by Sire. If it returns an invalid value for the field type, type handling or nested validation reports the validation error and field rules do not run for that value.
 
 ## Finalize output after validation
 
-Use `Field::finalize()` when a field needs a final output transform after successful coercion or nested validation and field rules. Finalize callbacks run only when validation has no errors, before review callbacks, and in registration order for each field.
+Use `Field::finalize()` when a field needs a final output transform after successful type handling or nested validation and field rules. Finalize callbacks run only when validation has no errors, before review callbacks, and in registration order for each field.
 
 ```php
 <?php
@@ -491,16 +505,18 @@ Configure a shape fluently when you need project-specific rules, coercion behavi
 - Use `Shape::rules()` to replace the rule registry.
 - Use `type()` to add or replace one base type with its coercer.
 - Use `types()` to replace the coercer registry.
+- Use `strict()` and `coerce()` to set the shape-level coercion mode.
 - Use `message()` to override one type, rule, or extra-field message.
 - Use `messages()` to override many type, rule, or extra-field messages.
 - Use `ruleParser()` if you need a different DSL split strategy.
 
-Custom rules implement `Duon\Sire\Contract\Rule`, expose a default `message`, and return `Duon\Sire\Contract\Validation`; use `Duon\Sire\Validation` when the default immutable result object is enough. Rules do not run after failed coercion or failed nested validation. Rules also skip values where `Contract\Value::$empty` is `true` by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a rule must run for successfully typed empty values. Custom coercers implement `Duon\Sire\Contract\Coercer`, expose a default `message`, and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Pass `empty: true` to `Coercion` when the coerced value has no meaningful content for its type. Return `Failure::invalid()` when a coercer or rule cannot produce a valid value. Use `Failure::key()` only when one coercer or rule has multiple distinct failure modes.
+Custom rules implement `Duon\Sire\Contract\Rule`, expose a default `message`, and return `Duon\Sire\Contract\Validation`; use `Duon\Sire\Validation` when the default immutable result object is enough. Rules do not run after failed type handling or failed nested validation. Rules also skip values where `Contract\Value::$empty` is `true` by default; implement `Duon\Sire\Contract\ValidatesEmpty` when a rule must run for successfully typed empty values. Custom coercers implement `Duon\Sire\Contract\Coercer`, expose a default `message`, and return `Duon\Sire\Contract\Coercion`; use `Duon\Sire\Coercion` when the default immutable result object is enough. Sire passes the resolved `Duon\Sire\CoercionMode` to `coerce()`, so custom coercers can reject non-native values in strict mode. Pass `empty: true` to `Coercion` when the coerced value has no meaningful content for its type. Return `Failure::invalid()` when a coercer or rule cannot produce a valid value. Use `Failure::key()` only when one coercer or rule has multiple distinct failure modes.
 
 ```php
 <?php
 
 use Duon\Sire\Coercion;
+use Duon\Sire\CoercionMode;
 use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Duon\Sire\Shape;
@@ -535,8 +551,18 @@ $shape
             }
 
             #[Override]
-            public function coerce(mixed $pristine): Contract\Coercion
-            {
+            public function coerce(
+                mixed $pristine,
+                CoercionMode $mode = CoercionMode::Coerce,
+            ): Contract\Coercion {
+                if ($mode === CoercionMode::Strict && !is_string($pristine)) {
+                    return new Coercion(
+                        $pristine,
+                        $pristine,
+                        Failure::invalid(),
+                    );
+                }
+
                 $value = strtolower(trim((string) $pristine));
 
                 if ($value !== '' && !preg_match('/^[a-z0-9-]+$/', $value)) {

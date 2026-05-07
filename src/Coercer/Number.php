@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Coercion;
+use Duon\Sire\CoercionMode;
 use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Override;
@@ -17,8 +18,14 @@ final class Number implements Contract\Coercer
 	}
 
 	#[Override]
-	public function coerce(mixed $pristine): Contract\Coercion
-	{
+	public function coerce(
+		mixed $pristine,
+		CoercionMode $mode = CoercionMode::Coerce,
+	): Contract\Coercion {
+		if ($mode === CoercionMode::Strict) {
+			return self::coerceStrict($pristine);
+		}
+
 		if (!self::isCoercible($pristine)) {
 			return self::invalid($pristine);
 		}
@@ -26,6 +33,17 @@ final class Number implements Contract\Coercer
 		$value = self::toNumber($pristine);
 
 		return new Coercion($value, $pristine, empty: $value === null);
+	}
+
+	private static function coerceStrict(mixed $pristine): Coercion
+	{
+		if ($pristine === null) {
+			return new Coercion(null, null, empty: true);
+		}
+
+		return is_int($pristine) || is_float($pristine)
+			? new Coercion($pristine, $pristine)
+			: self::invalid($pristine);
 	}
 
 	private static function invalid(mixed $pristine): Coercion

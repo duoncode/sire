@@ -14,6 +14,8 @@ final class Config
 
 	private Extra $extra = Extra::Ignore;
 
+	private CoercionMode $coercionMode = CoercionMode::Coerce;
+
 	/** @var array<string, string> */
 	private array $messages = [];
 
@@ -46,6 +48,11 @@ final class Config
 			'Invalid extra mode "%s"',
 			$extra,
 		));
+	}
+
+	public function coercionMode(CoercionMode $mode): void
+	{
+		$this->coercionMode = $mode;
 	}
 
 	public function rule(string $name, Contract\Rule $rule): void
@@ -99,6 +106,7 @@ final class Config
 		return new ShapeDefinition(
 			$this->list,
 			$this->extra,
+			$this->coercionMode,
 			$fields,
 			$this->resolvedRuleRegistry(),
 			$this->resolvedCoercerRegistry(),

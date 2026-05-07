@@ -17,6 +17,7 @@ final readonly class ShapeDefinition
 	public function __construct(
 		public bool $list,
 		public Extra $extra,
+		public CoercionMode $coercionMode,
 		public array $fields,
 		public Contract\RuleRegistry $rules,
 		public Contract\CoercerRegistry $coercers,

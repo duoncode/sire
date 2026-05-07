@@ -6,6 +6,7 @@ namespace Duon\Sire\Tests;
 
 use Duon\Sire\Blank;
 use Duon\Sire\Coercion;
+use Duon\Sire\CoercionMode;
 use Duon\Sire\Contract;
 use Duon\Sire\Shape;
 use Duon\Sire\Validation;
@@ -289,8 +290,10 @@ class EmptyTest extends TestCase
 			}
 
 			#[Override]
-			public function coerce(mixed $pristine): Contract\Coercion
-			{
+			public function coerce(
+				mixed $pristine,
+				CoercionMode $mode = CoercionMode::Coerce,
+			): Contract\Coercion {
 				$value = (string) $pristine;
 
 				return new Coercion($value, $pristine, empty: $value === 'empty');

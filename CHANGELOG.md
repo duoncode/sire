@@ -14,7 +14,7 @@
 - Removed the closure-backed custom rule adapter; custom rules now implement `Contract\Rule`.
 - Changed `Contract\Rule::validate()` to return `Contract\Validation` instead of `bool`.
 - Removed coercion errors from `Contract\Value`; custom coercers now return `Contract\Coercion` with direct `value`, `pristine`, and `failure` properties.
-- Changed `Contract\Coercer::coerce()` to receive only the pristine value.
+- Changed `Contract\Coercer::coerce()` to receive the pristine value and the resolved `CoercionMode`.
 - Added a required `message` property to `Contract\Coercer`.
 - Changed `CoercerRegistry::withDefaults()` to no longer accept message configuration.
 - Removed `skipEmpty` from `Contract\Rule`; regular rules now skip empty values and rules that must run on empty values implement `Contract\ValidatesEmpty`.
@@ -31,6 +31,7 @@
 - Changed built-in default error messages to include labels and named placeholders.
 - Changed missing fields to fail validation by default; use `Field::optional()` to omit them or `Field::default()` to fill them.
 - Changed missing boolean fields to no longer default to `false`; use `Field::default(false)` for checkbox-style defaults.
+- Changed the `bool` type to coerce common PHP and HTML form values in default coercing mode.
 - Changed explicit `null` values to fail before coercion unless `Field::nullable()` is used or preparation returns a non-null value.
 - Renamed the `text` type to `string` and `Coercer\Text` to `Coercer\Str`.
 - Renamed `Coercer\Sequence` to `Coercer\ListArray`.
@@ -39,7 +40,7 @@
 
 ### Added
 
-- Added fluent `Shape` configuration with `Shape::list()`, `asList()`, `extra()`, `rule()`, `rules()`, `type()`, `types()`, and `ruleParser()`.
+- Added fluent `Shape` configuration with `Shape::list()`, `asList()`, `extra()`, `strict()`, `coerce()`, `rule()`, `rules()`, `type()`, `types()`, and `ruleParser()`.
 - Added the `Extra` enum to control extra input fields with `ignore`, `allow`, and `forbid` modes.
 - Added the `number` type for values that may be integers or floats.
 - Added `Shape::review()` callbacks with `Review` for post-validation checks after successful normal validation.
@@ -47,6 +48,7 @@
 - Added `Field::prepare()` to normalize present or defaulted field values before type casting and nested shape validation.
 - Added `Field::finalize()` to transform valid output values after field validation and before review callbacks.
 - Added `Field::optional()`, `Field::default()`, `Field::empty()`, and `Field::nullable()` for field presence control.
+- Added `Field::strict()`, `Field::coerce()`, and `CoercionMode` for strict or coercing type handling.
 - Added the `Blank` enum for configuring which raw input states count as empty.
 - Added `Field::message()` and `Field::messages()` for field-specific type and rule messages.
 - Added quoted and escaped arguments for rule DSL definitions.

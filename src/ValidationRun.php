@@ -296,7 +296,10 @@ final class ValidationRun
 			throw new ValueError('Wrong shape type');
 		}
 
-		$coercion = $coercer->coerce($value);
+		$coercion = $coercer->coerce(
+			$value,
+			$definition->coercionMode($this->shape->coercionMode),
+		);
 
 		return new ReadValue(
 			new \Duon\Sire\Value($coercion->value, $coercion->pristine, $coercion->empty),

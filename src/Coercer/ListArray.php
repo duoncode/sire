@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Duon\Sire\Coercer;
 
 use Duon\Sire\Coercion;
+use Duon\Sire\CoercionMode;
 use Duon\Sire\Contract;
 use Duon\Sire\Failure;
 use Override;
@@ -17,8 +18,10 @@ final class ListArray implements Contract\Coercer
 	}
 
 	#[Override]
-	public function coerce(mixed $pristine): Contract\Coercion
-	{
+	public function coerce(
+		mixed $pristine,
+		CoercionMode $mode = CoercionMode::Coerce,
+	): Contract\Coercion {
 		if (
 			is_array($pristine)
 			&& ($pristine === [] || array_keys($pristine) === range(0, count($pristine) - 1))
