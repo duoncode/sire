@@ -112,17 +112,21 @@ class CoercerTest extends TestCase
 		$this->assertRejects(new Boolean(), 1, mode: CoercionMode::Strict);
 		$this->assertRejects(new Boolean(), 'on', mode: CoercionMode::Strict);
 
+		$this->assertCoerces(new Integer(), null, null, empty: true, mode: CoercionMode::Strict);
 		$this->assertCoerces(new Integer(), 13, 13, mode: CoercionMode::Strict);
 		$this->assertRejects(new Integer(), '13', mode: CoercionMode::Strict);
 
+		$this->assertCoerces(new FloatingPoint(), null, null, empty: true, mode: CoercionMode::Strict);
 		$this->assertCoerces(new FloatingPoint(), 13.13, 13.13, mode: CoercionMode::Strict);
 		$this->assertRejects(new FloatingPoint(), 13, mode: CoercionMode::Strict);
 		$this->assertRejects(new FloatingPoint(), '13.13', mode: CoercionMode::Strict);
 
+		$this->assertCoerces(new Number(), null, null, empty: true, mode: CoercionMode::Strict);
 		$this->assertCoerces(new Number(), 13, 13, mode: CoercionMode::Strict);
 		$this->assertCoerces(new Number(), 13.13, 13.13, mode: CoercionMode::Strict);
 		$this->assertRejects(new Number(), '13', mode: CoercionMode::Strict);
 
+		$this->assertCoerces(new Str(), null, null, empty: true, mode: CoercionMode::Strict);
 		$this->assertCoerces(new Str(), '', '', empty: true, mode: CoercionMode::Strict);
 		$this->assertCoerces(new Str(), 'text', 'text', mode: CoercionMode::Strict);
 		$this->assertRejects(new Str(), 13, mode: CoercionMode::Strict);
