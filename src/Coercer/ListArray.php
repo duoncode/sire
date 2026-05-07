@@ -18,10 +18,8 @@ final class ListArray implements Contract\Coercer
 	}
 
 	#[Override]
-	public function coerce(
-		mixed $pristine,
-		CoercionMode $mode = CoercionMode::Coerce,
-	): Contract\Coercion {
+	public function coerce(mixed $pristine, CoercionMode $mode): Contract\Coercion
+	{
 		if (
 			is_array($pristine)
 			&& ($pristine === [] || array_keys($pristine) === range(0, count($pristine) - 1))

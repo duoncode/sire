@@ -512,7 +512,7 @@ class ShapeTest extends TestCase
 				#[Override]
 				public function coerce(
 					mixed $pristine,
-					CoercionMode $mode = CoercionMode::Coerce,
+					CoercionMode $mode,
 				): \Duon\Sire\Contract\Coercion {
 					if (!is_string($pristine) || !preg_match('/^[a-z0-9-]+$/', $pristine)) {
 						return new Coercion(
@@ -549,7 +549,7 @@ class ShapeTest extends TestCase
 					#[Override]
 					public function coerce(
 						mixed $pristine,
-						CoercionMode $mode = CoercionMode::Coerce,
+						CoercionMode $mode,
 					): \Duon\Sire\Contract\Coercion {
 						return new Coercion(
 							$pristine,
@@ -578,7 +578,7 @@ class ShapeTest extends TestCase
 				#[Override]
 				public function coerce(
 					mixed $pristine,
-					CoercionMode $mode = CoercionMode::Coerce,
+					CoercionMode $mode,
 				): \Duon\Sire\Contract\Coercion {
 					$value = is_string($pristine) ? strtoupper($pristine) : $pristine;
 

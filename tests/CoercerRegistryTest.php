@@ -26,19 +26,22 @@ class CoercerRegistryTest extends TestCase
 
 		$this->assertNull($registry->get('upper'));
 		$this->assertSame($updatedRegistry->get('upper'), $updatedRegistry->get('upper'));
-		$this->assertSame('value', $updatedRegistry->get('lower')?->coerce('VALUE')->value);
+		$this->assertSame(
+			'value',
+			$updatedRegistry->get('lower')?->coerce('VALUE', CoercionMode::Coerce)->value,
+		);
 	}
 
 	public function testWithDefaultsHasBuiltInCoercers(): void
 	{
 		$registry = CoercerRegistry::withDefaults();
 
-		$this->assertSame('test', $registry->get('string')?->coerce('test')->value);
-		$this->assertSame(true, $registry->get('bool')?->coerce(true)->value);
-		$this->assertSame(13, $registry->get('int')?->coerce('13')->value);
-		$this->assertSame(13.0, $registry->get('float')?->coerce('13')->value);
-		$this->assertSame(13, $registry->get('number')?->coerce('13')->value);
-		$this->assertSame([1, 2], $registry->get('list')?->coerce([1, 2])->value);
+		$this->assertSame('test', $registry->get('string')?->coerce('test', CoercionMode::Coerce)->value);
+		$this->assertSame(true, $registry->get('bool')?->coerce(true, CoercionMode::Coerce)->value);
+		$this->assertSame(13, $registry->get('int')?->coerce('13', CoercionMode::Coerce)->value);
+		$this->assertSame(13.0, $registry->get('float')?->coerce('13', CoercionMode::Coerce)->value);
+		$this->assertSame(13, $registry->get('number')?->coerce('13', CoercionMode::Coerce)->value);
+		$this->assertSame([1, 2], $registry->get('list')?->coerce([1, 2], CoercionMode::Coerce)->value);
 	}
 
 	public function testWithDefaultsMemoizesBuiltInCoercers(): void
@@ -95,7 +98,7 @@ class CoercerRegistryTest extends TestCase
 			#[Override]
 			public function coerce(
 				mixed $pristine,
-				CoercionMode $mode = CoercionMode::Coerce,
+				CoercionMode $mode,
 			): Contract\Coercion {
 				return new Coercion(($this->callback)($pristine), $pristine);
 			}

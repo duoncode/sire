@@ -76,7 +76,7 @@ Sire coerces field values by default. Use `strict()` when fields should reject v
 
 use Duon\Sire\Shape;
 
-$shape = (new Shape())->strict();
+$shape = new Shape()->strict();
 $shape->add('age', 'int'); // accepts only native ints
 $shape->add('count', 'int')->coerce(); // accepts numeric strings too
 ```
@@ -223,7 +223,7 @@ Use `Shape::prepare()` when the whole input payload needs migration or normaliza
 use Duon\Sire\Extra;
 use Duon\Sire\Shape;
 
-$shape = (new Shape())
+$shape = new Shape()
     ->extra(Extra::Forbid)
     ->prepare(static function (array $data): array {
         if (array_key_exists('firstName', $data) && !array_key_exists('first_name', $data)) {
@@ -369,7 +369,7 @@ Use `message()` or `messages()` to override coercion and rule errors for a shape
 
 use Duon\Sire\Shape;
 
-$shape = (new Shape())
+$shape = new Shape()
     ->message('type.int', '{label} must be a whole number')
     ->messages([
         'type.bool' => '{label} must be yes or no',
@@ -553,7 +553,7 @@ $shape
             #[Override]
             public function coerce(
                 mixed $pristine,
-                CoercionMode $mode = CoercionMode::Coerce,
+                CoercionMode $mode,
             ): Contract\Coercion {
                 if ($mode === CoercionMode::Strict && !is_string($pristine)) {
                     return new Coercion(

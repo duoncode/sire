@@ -18,10 +18,8 @@ final class Integer implements Contract\Coercer
 	}
 
 	#[Override]
-	public function coerce(
-		mixed $pristine,
-		CoercionMode $mode = CoercionMode::Coerce,
-	): Contract\Coercion {
+	public function coerce(mixed $pristine, CoercionMode $mode): Contract\Coercion
+	{
 		if ($mode === CoercionMode::Strict) {
 			return self::coerceStrict($pristine);
 		}

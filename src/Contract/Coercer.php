@@ -11,8 +11,5 @@ interface Coercer
 {
 	public string $message { get; }
 
-	public function coerce(
-		mixed $pristine,
-		CoercionMode $mode = CoercionMode::Coerce,
-	): Coercion;
+	public function coerce(mixed $pristine, CoercionMode $mode): Coercion;
 }

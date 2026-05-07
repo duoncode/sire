@@ -292,7 +292,7 @@ class EmptyTest extends TestCase
 			#[Override]
 			public function coerce(
 				mixed $pristine,
-				CoercionMode $mode = CoercionMode::Coerce,
+				CoercionMode $mode,
 			): Contract\Coercion {
 				$value = (string) $pristine;
 
