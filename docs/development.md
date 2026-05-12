@@ -29,7 +29,7 @@ Sire uses Composer scripts for all routine quality checks.
 
 - Run tests: `composer test`
 - Run static analysis: `composer types`
-- Run markdown linting: `composer mdlint`
+- Run markdown linting: `composer docs:lint`
 - Run path coverage and line coverage checks: `composer coverage`
 - Run the full local pipeline: `composer ci`
 
@@ -43,7 +43,7 @@ When you update `README.md` or files in `docs/`, run markdown linting to keep fo
 2. Run markdown checks.
 
     ```bash
-    composer mdlint
+    composer docs:lint
     ```
 
 3. Fix reported issues before committing.
